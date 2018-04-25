@@ -45,6 +45,17 @@ This is convenient because you don't need to install nodejs & npm.
   * check logs with `sudo journalctl -u undiscombobulate.service`
   * start on boot with `sudo systemctl enable undiscombobulate.service`
 
+## run from cli
+
+There are a few command line args which are helpful for testing:
+
+ * `--once` / `-o` : forces 'run once' mode.
+ * `--no-dump` / `-n` : won't write dump files to source directories.
+
+everytime undisco processes a directory, it will write a dump of meta / logs to the source directory. Next time undisco processes that directory, it will skip processing it if its been successfully processed already. Therefore, using the `-n` option means that undisco won't know a directory has already been processed next time it looks at it.
+
+if you have source you can `npm start`, if you want to pass in command line args it looks like `npm start -- -n -o`
+
 ## watching vs polling
 
 In the options you can specify a watch option (true / false) or a poll option
