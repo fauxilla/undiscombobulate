@@ -4,13 +4,15 @@
 
 extensible post processing for movies & tv
 
+Take a look at the awesome [annotated code](https://fauxilla.github.io/undiscombobulate/lib/index.js.html)
+
 Be aware this is alpha quality, don't run it on media archives you don't want to lose.
 
 ## install & run binaries
 
 This is convenient because you don't need to install nodejs & npm.
 
- * go to release page & download binary
+ * go to [release page](https://github.com/fauxilla/undiscombobulate/releases) & download binary
  * copy `config.sample.hjson` from this repo to `config.hjson` in the same
    directory as your binary and configure paths
    [hjson reference](http://hjson.org/)
