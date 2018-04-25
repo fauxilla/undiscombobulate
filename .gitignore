@@ -1,0 +1,6 @@
+bin
+dist
+node_modules
+config.hjson
+undisco.dump
+test/fixtures/nockBack/**/*

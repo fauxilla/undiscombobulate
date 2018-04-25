@@ -1,0 +1,18 @@
+[Unit]
+Description=My app
+
+[Service]
+# path to your executable or script
+# if running from source:
+# ExecStart=/opt/discombobulate/dist/index.js
+ExecStart=/opt/discombobulate/disco-linux-x64
+Restart=always
+User=nobody
+# Note RHEL/Fedora uses 'nobody', Debian/Ubuntu uses 'nogroup'
+Group=nogroup
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=NODE_ENV=production
+WorkingDirectory=/opt/discombobulate
+
+[Install]
+WantedBy=multi-user.target
