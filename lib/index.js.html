@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>index.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="../doc-style.css" />
+  <script src="../doc-filelist.js"></script>
+  <script>
+    var relativeDir = "../";
+    var thisFile = "lib/index.js";
+    var defaultSidebar = true;
+  </script>
+  <script src="../doc-script.js"></script>
+
+</head>
+<body>
+  <div id="sidebar_wrapper">
+    <div id="sidebar_switch">
+      <span class="tree">Files</span>
+      <span class="headings">Headings</span>
+    </div>
+    <div id="tree"></div>
+    <div id="headings">
+
+    </div>
+  </div>
+  <div id="sidebar-toggle"></div>
+  <div id="container">
+    <div class="background highlight"></div>
+<table cellpadding="0" cellspacing="0">
+  <tbody>
+    
+      <tr>
+        <td class="docs">
+          <h1>index.js</h1>
+        </td>
+        <td class="code highlight"></td>
+      </tr>
+    
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1"></a>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-meta">#!/usr/bin/env node</span>
+<span class="hljs-keyword">import</span> <span class="hljs-string">'babel-polyfill'</span>
+<span class="hljs-keyword">import</span> Undisco <span class="hljs-keyword">from</span> <span class="hljs-string">'./Undisco'</span>
+<span class="hljs-keyword">import</span> readDir <span class="hljs-keyword">from</span> <span class="hljs-string">'./readDir'</span>
+<span class="hljs-keyword">import</span> hjson <span class="hljs-keyword">from</span> <span class="hljs-string">'hjson'</span>
+<span class="hljs-keyword">import</span> fontAscii <span class="hljs-keyword">from</span> <span class="hljs-string">'font-ascii'</span>
+<span class="hljs-keyword">import</span> {
+  readFile
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'mz/fs'</span>
+<span class="hljs-keyword">import</span> {
+  watch
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'chokidar'</span>
+
+<span class="hljs-keyword">import</span> debug <span class="hljs-keyword">from</span> <span class="hljs-string">'debug'</span>
+<span class="hljs-keyword">import</span> commandLineArgs <span class="hljs-keyword">from</span> <span class="hljs-string">'command-line-args'</span>
+
+<span class="hljs-keyword">const</span> dbg = debug(<span class="hljs-string">'undisco'</span>)
+
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-2" id="section-2"></a>
+</div>
+<div class="dox">
+<div class="summary">
+<p>main controller, determines run mode &amp; monitors</p>
+</div>
+<div class="body">
+</div>
+<div class="details">
+<div class="dox_tag_title">Params</div>
+<div class="dox_tag_detail">
+<span class="dox_tag_name">opt</span>
+<span class="dox_type">Object</span>
+<span>options
+</span>
+</div>
+<div class="dox_tag_title">Returns</div>
+<div class="dox_tag_detail">
+<span class="dox_tag_name"></span>
+<span class="dox_type">Object</span>
+<span>returns dumps, only in <code>once</code> mode
+</span>
+</div>
+</div>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">undisco</span> (<span class="hljs-params">opt</span>) </span>{
+  <span class="hljs-keyword">if</span> (opt.once) {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`run once on <span class="hljs-subst">${opt.downloadsPath}</span>`</span>)
+    <span class="hljs-keyword">let</span> dirs
+    <span class="hljs-keyword">try</span> {
+      dirs = <span class="hljs-keyword">await</span> readDir(opt.downloadsPath, { <span class="hljs-attr">files</span>: <span class="hljs-literal">false</span> })
+    } <span class="hljs-keyword">catch</span> (e) {
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">`bad path: <span class="hljs-subst">${opt.downloadsPath}</span>`</span>)
+    }
+    dbg(<span class="hljs-string">`<span class="hljs-subst">${dirs.length}</span> entries in <span class="hljs-subst">${opt.downloadsPath}</span>`</span>)
+    <span class="hljs-keyword">const</span> dump = []
+    <span class="hljs-keyword">const</span> workers = dirs.map(<span class="hljs-function">(<span class="hljs-params">dir</span>) =&gt;</span> <span class="hljs-keyword">new</span> Undisco(dir.path, opt))
+    <span class="hljs-keyword">while</span> (workers.length) {
+      dump.push(<span class="hljs-keyword">await</span> workers.shift().run())
+    }
+    <span class="hljs-keyword">return</span> dump
+  }
+  <span class="hljs-keyword">if</span> (watch || opt.poll) {
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-3" id="section-3"></a>
+</div>
+<p>watch <code>downloadsPath</code></p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`watching <span class="hljs-subst">${opt.downloadsPath}</span>`</span>)
+    watch(
+      opt.downloadsPath,
+      <span class="hljs-built_in">Object</span>.assign(
+        {
+          <span class="hljs-attr">depth</span>: <span class="hljs-number">0</span>,
+          <span class="hljs-attr">usePolling</span>: <span class="hljs-built_in">Boolean</span>(opt.poll),
+          <span class="hljs-attr">awaitWriteFinish</span>: {
+            <span class="hljs-attr">stabilityThreshold</span>: <span class="hljs-number">10000</span>,
+            <span class="hljs-attr">pollInterval</span>: <span class="hljs-number">10000</span>
+          }
+        },
+        opt.poll ? {
+          <span class="hljs-attr">interval</span>: opt.poll * <span class="hljs-number">60</span> * <span class="hljs-number">1000</span>,
+          <span class="hljs-attr">binaryInterval</span>: opt.poll * <span class="hljs-number">60</span> * <span class="hljs-number">1000</span>
+        } : {}
+      )
+    ).on(<span class="hljs-string">'addDir'</span>, (file) =&gt; {
+      dbg(<span class="hljs-string">'detected change'</span>, file)
+      queue({ <span class="hljs-attr">path</span>: file }, opt)
+    })
+  }
+}
+
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-4" id="section-4"></a>
+</div>
+<div class="dox">
+<div class="summary">
+<p>globally scoped workers for queue fn</p>
+</div>
+<div class="body">
+</div>
+<div class="details">
+<div class="dox_tag_title">Type</div>
+<div class="dox_tag_detail">
+<span class="dox_type">Array</span>
+</div>
+</div>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">const</span> workers = []
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-5" id="section-5"></a>
+</div>
+<div class="dox">
+<div class="summary">
+<p>indicator for queue, whether processing in progress</p>
+</div>
+<div class="body">
+</div>
+<div class="details">
+<div class="dox_tag_title">Type</div>
+<div class="dox_tag_detail">
+<span class="dox_type">Boolean</span>
+</div>
+</div>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">let</span> working = <span class="hljs-literal">false</span>
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-6" id="section-6"></a>
+</div>
+<div class="dox">
+<div class="summary">
+<p>simple in house async promise queueing</p>
+</div>
+<div class="body">
+</div>
+<div class="details">
+<div class="dox_tag_title">Params</div>
+<div class="dox_tag_detail">
+<span class="dox_tag_name">dirs</span>
+<span class="dox_type">String</span>
+<span class="dox_type">Array</span>
+<span>directories to process
+</span>
+</div>
+<div class="dox_tag_detail">
+<span class="dox_tag_name">opt</span>
+<span class="dox_type">Object</span>
+<span>Undisco options
+</span>
+</div>
+</div>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">queue</span> (<span class="hljs-params">dirs, opt</span>) </span>{
+  dirs = [].concat(dirs)
+  workers.push(...dirs.map(<span class="hljs-function">(<span class="hljs-params">dir</span>) =&gt;</span> <span class="hljs-keyword">new</span> Undisco(dir.path, opt)))
+  <span class="hljs-keyword">if</span> (working) <span class="hljs-keyword">return</span>
+  working = <span class="hljs-literal">true</span>
+  dbg(<span class="hljs-string">'start work'</span>)
+  <span class="hljs-keyword">while</span> (workers.length) {
+    dbg(<span class="hljs-string">'worker iterate'</span>)
+
+    <span class="hljs-keyword">await</span> workers.shift().run()
+  }
+  working = <span class="hljs-literal">false</span>
+}
+
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-7" id="section-7"></a>
+</div>
+<p>only run if called (not impoted)</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">if</span> (!<span class="hljs-built_in">module</span>.parent) {
+  (<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">let</span> opt
+    fontAscii(<span class="hljs-string">'undisco'</span>, { <span class="hljs-attr">typeface</span>: <span class="hljs-string">'SmallSlant'</span>, <span class="hljs-attr">color</span>: <span class="hljs-string">'blue'</span> })
+    <span class="hljs-keyword">try</span> {
+      opt = hjson.parse(<span class="hljs-keyword">await</span> readFile(<span class="hljs-string">'./config.hjson'</span>, <span class="hljs-string">'utf8'</span>))
+    } <span class="hljs-keyword">catch</span> (e) {
+      <span class="hljs-keyword">if</span> (e.code !== <span class="hljs-string">'ENOENT'</span>) <span class="hljs-keyword">throw</span> e
+      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`You don't seem to have a config file.`</span>)
+      <span class="hljs-keyword">return</span>
+    }
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-8" id="section-8"></a>
+</div>
+<p>rudimentary flags, only for things that help with testing</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">    <span class="hljs-keyword">let</span> args = commandLineArgs([
+      { <span class="hljs-attr">name</span>: <span class="hljs-string">'once'</span>, <span class="hljs-attr">alias</span>: <span class="hljs-string">'o'</span>, <span class="hljs-attr">type</span>: <span class="hljs-built_in">Boolean</span> },
+      { <span class="hljs-attr">name</span>: <span class="hljs-string">'no-dump'</span>, <span class="hljs-attr">alias</span>: <span class="hljs-string">'n'</span>, <span class="hljs-attr">type</span>: <span class="hljs-built_in">Boolean</span> }
+    ])
+    <span class="hljs-keyword">if</span> (args.once) opt.once = <span class="hljs-literal">true</span>
+    <span class="hljs-keyword">if</span> (args[<span class="hljs-string">'no-dump'</span>]) opt.dump = { <span class="hljs-attr">writeDump</span>: <span class="hljs-literal">false</span> }
+    <span class="hljs-keyword">try</span> {
+      undisco(opt)
+    } <span class="hljs-keyword">catch</span> (e) {
+      <span class="hljs-built_in">console</span>.log(e.message)
+      dbg(e)
+    }
+  })()
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> undisco
+
+</pre>
+        </td>
+      </tr>
+    
+  </tbody>
+</table>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>unrar.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="../../doc-style.css" />
+  <script src="../../doc-filelist.js"></script>
+  <script>
+    var relativeDir = "../../";
+    var thisFile = "lib/modules/unrar.js";
+    var defaultSidebar = true;
+  </script>
+  <script src="../../doc-script.js"></script>
+
+</head>
+<body>
+  <div id="sidebar_wrapper">
+    <div id="sidebar_switch">
+      <span class="tree">Files</span>
+      <span class="headings">Headings</span>
+    </div>
+    <div id="tree"></div>
+    <div id="headings">
+
+    </div>
+  </div>
+  <div id="sidebar-toggle"></div>
+  <div id="container">
+    <div class="background highlight"></div>
+<table cellpadding="0" cellspacing="0">
+  <tbody>
+    
+      <tr>
+        <td class="docs">
+          <h1>unrar.js</h1>
+        </td>
+        <td class="code highlight"></td>
+      </tr>
+    
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1"></a>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">import</span> Unrar <span class="hljs-keyword">from</span> <span class="hljs-string">'unrar'</span>
+<span class="hljs-keyword">import</span> progress <span class="hljs-keyword">from</span> <span class="hljs-string">'progress-stream'</span>
+<span class="hljs-keyword">import</span> ProgressBar <span class="hljs-keyword">from</span> <span class="hljs-string">'cli-progress-bar'</span>
+<span class="hljs-keyword">import</span> {
+  mkdirpSync
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'fs-extra'</span>
+<span class="hljs-keyword">import</span> {
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-2" id="section-2"></a>
+</div>
+<p>createReadStream,</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">  createWriteStream
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'fs'</span>
+<span class="hljs-keyword">import</span> {
+  join
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'path'</span>
+<span class="hljs-keyword">import</span> readDir <span class="hljs-keyword">from</span> <span class="hljs-string">'../readDir'</span>
+
+<span class="hljs-keyword">const</span> defaults = {
+  <span class="hljs-attr">tempDir</span>: <span class="hljs-string">'/tmp'</span>
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">unrar</span> (<span class="hljs-params">{ meta, logger, opt }</span>) </span>{
+  opt = <span class="hljs-built_in">Object</span>.assign(defaults, opt)
+  <span class="hljs-keyword">const</span> log = logger(<span class="hljs-string">'unrar'</span>)
+  <span class="hljs-keyword">const</span> archiveFile = meta.files.find(<span class="hljs-function">(<span class="hljs-params">file</span>) =&gt;</span> file.type === <span class="hljs-string">'archive'</span>)
+  <span class="hljs-keyword">if</span> (!archiveFile) <span class="hljs-keyword">return</span> log(<span class="hljs-string">'no archive'</span>)
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Promise</span>(<span class="hljs-function">(<span class="hljs-params">resolve, reject</span>) =&gt;</span> {
+    meta.tempPath = join(opt.tempDir, meta.srcRootDir)
+    mkdirpSync(meta.tempPath)
+    <span class="hljs-keyword">const</span> archive = <span class="hljs-keyword">new</span> Unrar(archiveFile.path)
+    archive.list(<span class="hljs-keyword">async</span> (e, entries) =&gt; {
+      <span class="hljs-keyword">if</span> (e) <span class="hljs-keyword">return</span> reject(e)
+      <span class="hljs-keyword">const</span> workers = entries.map(<span class="hljs-function">(<span class="hljs-params">entry</span>) =&gt;</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Promise</span>(<span class="hljs-function">(<span class="hljs-params">resolve</span>) =&gt;</span> {
+          <span class="hljs-keyword">const</span> input = archive.stream(entry.name)
+          <span class="hljs-keyword">const</span> output = createWriteStream(join(meta.tempPath, entry.name))
+          <span class="hljs-keyword">const</span> reporter = progress({
+            <span class="hljs-attr">length</span>: entry.size,
+            <span class="hljs-attr">time</span>: <span class="hljs-number">100</span>
+          })
+          <span class="hljs-keyword">const</span> bar = <span class="hljs-keyword">new</span> ProgressBar()
+          bar.show(entry.name, <span class="hljs-number">0</span>)
+          reporter.on(<span class="hljs-string">'progress'</span>, ({ percentage }) =&gt; {
+            bar.show(entry.name, percentage / <span class="hljs-number">100</span>)
+          })
+          output.on(<span class="hljs-string">'close'</span>, () =&gt; {
+            bar.hide()
+            log(<span class="hljs-string">`extracted <span class="hljs-subst">${entry.name}</span>`</span>)
+            resolve()
+          })
+          input
+            .pipe(reporter)
+            .pipe(output)
+        })
+      })
+      <span class="hljs-keyword">while</span> (workers.length) <span class="hljs-keyword">await</span> workers.pop()()
+      meta.files = meta.files.concat(<span class="hljs-keyword">await</span> readDir(meta.tempPath))
+      resolve()
+    })
+  })
+}
+
+</pre>
+        </td>
+      </tr>
+    
+  </tbody>
+</table>
+
+  </div>
+</body>
+</html>

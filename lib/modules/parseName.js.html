@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>parseName.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="../../doc-style.css" />
+  <script src="../../doc-filelist.js"></script>
+  <script>
+    var relativeDir = "../../";
+    var thisFile = "lib/modules/parseName.js";
+    var defaultSidebar = true;
+  </script>
+  <script src="../../doc-script.js"></script>
+
+</head>
+<body>
+  <div id="sidebar_wrapper">
+    <div id="sidebar_switch">
+      <span class="tree">Files</span>
+      <span class="headings">Headings</span>
+    </div>
+    <div id="tree"></div>
+    <div id="headings">
+
+    </div>
+  </div>
+  <div id="sidebar-toggle"></div>
+  <div id="container">
+    <div class="background highlight"></div>
+<table cellpadding="0" cellspacing="0">
+  <tbody>
+    
+      <tr>
+        <td class="docs">
+          <h1>parseName.js</h1>
+        </td>
+        <td class="code highlight"></td>
+      </tr>
+    
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1"></a>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">import</span> {
+  parse
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'path'</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">parseName</span> (<span class="hljs-params">{ meta, logger }</span>) </span>{
+  <span class="hljs-keyword">const</span> log = logger(<span class="hljs-string">'parseName'</span>)
+  <span class="hljs-keyword">if</span> (meta.imdbId) {
+    log(<span class="hljs-string">'have imdb id, no need to parse name'</span>)
+    <span class="hljs-keyword">return</span>
+  }
+  <span class="hljs-keyword">let</span> name = parse(meta.srcRootDir).base
+    .replace(<span class="hljs-regexp">/\./g</span>, <span class="hljs-string">' '</span>)
+    .replace(<span class="hljs-regexp">/[-()_!+]/g</span>, <span class="hljs-string">''</span>)
+  <span class="hljs-keyword">const</span> seasonEpisode = <span class="hljs-regexp">/S(\d{2})E(\d{2})/</span>.exec(name)
+  <span class="hljs-keyword">if</span> (seasonEpisode) {
+    name = name.slice(<span class="hljs-number">0</span>, seasonEpisode.index - <span class="hljs-number">1</span>)
+    meta.parsedName = {
+      <span class="hljs-attr">type</span>: <span class="hljs-string">'tv'</span>,
+      name,
+      <span class="hljs-attr">season</span>: seasonEpisode[<span class="hljs-number">1</span>],
+      <span class="hljs-attr">episode</span>: seasonEpisode[<span class="hljs-number">2</span>]
+    }
+    <span class="hljs-keyword">return</span>
+  }
+  <span class="hljs-keyword">const</span> year = <span class="hljs-regexp">/(19|20)\d{2}/</span>.exec(name)
+  <span class="hljs-keyword">if</span> (year) {
+    name = name.slice(<span class="hljs-number">0</span>, year.index - <span class="hljs-number">1</span>)
+    meta.parsedName = {
+      <span class="hljs-attr">type</span>: <span class="hljs-string">'movie'</span>,
+      name,
+      <span class="hljs-attr">year</span>: year[<span class="hljs-number">0</span>]
+    }
+    <span class="hljs-keyword">return</span>
+  }
+  <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'no imdb id &amp; no parsed name'</span>)
+}
+
+</pre>
+        </td>
+      </tr>
+    
+  </tbody>
+</table>
+
+  </div>
+</body>
+</html>

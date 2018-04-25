@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>tmdb.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="../../doc-style.css" />
+  <script src="../../doc-filelist.js"></script>
+  <script>
+    var relativeDir = "../../";
+    var thisFile = "lib/modules/tmdb.js";
+    var defaultSidebar = true;
+  </script>
+  <script src="../../doc-script.js"></script>
+
+</head>
+<body>
+  <div id="sidebar_wrapper">
+    <div id="sidebar_switch">
+      <span class="tree">Files</span>
+      <span class="headings">Headings</span>
+    </div>
+    <div id="tree"></div>
+    <div id="headings">
+
+    </div>
+  </div>
+  <div id="sidebar-toggle"></div>
+  <div id="container">
+    <div class="background highlight"></div>
+<table cellpadding="0" cellspacing="0">
+  <tbody>
+    
+      <tr>
+        <td class="docs">
+          <h1>tmdb.js</h1>
+        </td>
+        <td class="code highlight"></td>
+      </tr>
+    
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1"></a>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">import</span> {
+  createClient,
+  Client
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'flashheart'</span>
+<span class="hljs-keyword">import</span> {
+  promisify
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'util'</span>
+<span class="hljs-keyword">import</span> {
+  stringify
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'querystring'</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">tmdb</span> (<span class="hljs-params">{ meta, logger, opt }</span>) </span>{
+  <span class="hljs-keyword">const</span> log = logger(<span class="hljs-string">'tmdb'</span>)
+  <span class="hljs-keyword">if</span> (!opt.tmdb || !opt.tmdb.apiKey) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'must configure apiKey for tmdb'</span>)
+  }
+  <span class="hljs-keyword">const</span> apiKey = opt.tmdb.apiKey
+
+  <span class="hljs-keyword">if</span> (meta.imdbId) {
+    log(<span class="hljs-string">'lookup by imdb id'</span>)
+    meta.tmdb = <span class="hljs-keyword">await</span> imdbId(meta.imdbId, apiKey)
+      .catch(<span class="hljs-function"><span class="hljs-params">e</span> =&gt;</span> { <span class="hljs-keyword">throw</span> e })
+    <span class="hljs-keyword">return</span>
+  }
+  <span class="hljs-keyword">if</span> (!meta.parsedName) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'no imdb id and no parsed name'</span>)
+  <span class="hljs-keyword">if</span> (meta.parsedName.type === <span class="hljs-string">'tv'</span>) {
+    log(<span class="hljs-string">'lookup tv ep by parsed name'</span>)
+    meta.tmdb = <span class="hljs-keyword">await</span> tv(meta.parsedName, apiKey)
+      .catch(<span class="hljs-function"><span class="hljs-params">e</span> =&gt;</span> { <span class="hljs-keyword">throw</span> e })
+    <span class="hljs-keyword">return</span>
+  }
+  <span class="hljs-keyword">if</span> (meta.parsedName.type === <span class="hljs-string">'movie'</span>) {
+    log(<span class="hljs-string">'lookup movie by parsed name'</span>)
+    meta.tmdb = <span class="hljs-keyword">await</span> movie(meta.parsedName, apiKey)
+      .catch(<span class="hljs-function"><span class="hljs-params">e</span> =&gt;</span> { <span class="hljs-keyword">throw</span> e })
+    <span class="hljs-keyword">return</span>
+  }
+  <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">`tmdb, no id and bad type: <span class="hljs-subst">${meta.parsedName.type}</span>`</span>)
+}
+
+<span class="hljs-keyword">const</span> client = createClient()
+client.get = promisify(Client.prototype.get)
+
+<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">imdbId</span> (<span class="hljs-params">id, apiKey</span>) </span>{
+  <span class="hljs-keyword">const</span> endpoint = <span class="hljs-string">'https://api.themoviedb.org/3/find/'</span>
+  <span class="hljs-keyword">const</span> query = stringify({
+    <span class="hljs-attr">api_key</span>: apiKey,
+    <span class="hljs-attr">external_source</span>: <span class="hljs-string">'imdb_id'</span>
+  })
+  <span class="hljs-keyword">const</span> url = <span class="hljs-string">`<span class="hljs-subst">${endpoint}</span><span class="hljs-subst">${id}</span>?<span class="hljs-subst">${query}</span>`</span>
+  <span class="hljs-keyword">let</span> tmdb
+  <span class="hljs-keyword">try</span> {
+    tmdb = <span class="hljs-keyword">await</span> client.get(url)
+  } <span class="hljs-keyword">catch</span> (e) { <span class="hljs-keyword">throw</span> e }
+  <span class="hljs-keyword">if</span> (tmdb.movie_results.length) {
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">Object</span>.assign(
+      tmdb.movie_results[<span class="hljs-number">0</span>],
+      { <span class="hljs-attr">type</span>: <span class="hljs-string">'movies'</span> }
+    )
+  }
+  <span class="hljs-keyword">if</span> (tmdb.tv_results.length) {
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">Object</span>.assign(
+      tmdb.tv_results[<span class="hljs-number">0</span>],
+      { <span class="hljs-attr">type</span>: <span class="hljs-string">'tv'</span> }
+    )
+  }
+  <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">`couldn't resolve imdb id <span class="hljs-subst">${id}</span>`</span>)
+}
+<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">tv</span> (<span class="hljs-params">{ name }, apiKey</span>) </span>{
+  <span class="hljs-keyword">const</span> endpoint = <span class="hljs-string">'https://api.themoviedb.org/3/search/tv'</span>
+  <span class="hljs-keyword">const</span> query = stringify({
+    <span class="hljs-attr">api_key</span>: apiKey,
+    <span class="hljs-attr">query</span>: name
+  })
+  <span class="hljs-keyword">const</span> url = <span class="hljs-string">`<span class="hljs-subst">${endpoint}</span>?<span class="hljs-subst">${query}</span>`</span>
+  <span class="hljs-keyword">let</span> tmdb
+  <span class="hljs-keyword">try</span> {
+    tmdb = <span class="hljs-keyword">await</span> client.get(url)
+  } <span class="hljs-keyword">catch</span> (e) { <span class="hljs-keyword">throw</span> e }
+  <span class="hljs-keyword">if</span> (!tmdb.results.length) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">`no tmdb tv result: <span class="hljs-subst">${name}</span>`</span>)
+  <span class="hljs-keyword">return</span> <span class="hljs-built_in">Object</span>.assign(
+    tmdb.results[<span class="hljs-number">0</span>],
+    { <span class="hljs-attr">type</span>: <span class="hljs-string">'tv'</span> }
+  )
+}
+<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">movie</span> (<span class="hljs-params">{name, year}, apiKey</span>) </span>{
+  <span class="hljs-keyword">const</span> endpoint = <span class="hljs-string">'https://api.themoviedb.org/3/search/movie'</span>
+  <span class="hljs-keyword">const</span> query = stringify({
+    <span class="hljs-attr">api_key</span>: apiKey,
+    <span class="hljs-attr">query</span>: name,
+    year
+  })
+  <span class="hljs-keyword">const</span> url = <span class="hljs-string">`<span class="hljs-subst">${endpoint}</span>?<span class="hljs-subst">${query}</span>`</span>
+  <span class="hljs-keyword">let</span> tmdb
+  <span class="hljs-keyword">try</span> {
+    tmdb = <span class="hljs-keyword">await</span> client.get(url)
+  } <span class="hljs-keyword">catch</span> (e) { <span class="hljs-keyword">throw</span> e }
+  <span class="hljs-keyword">if</span> (!tmdb.results.length) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">`no tmdb movie result: <span class="hljs-subst">${name}</span>`</span>)
+  <span class="hljs-keyword">return</span> <span class="hljs-built_in">Object</span>.assign(
+    tmdb.results[<span class="hljs-number">0</span>],
+    { <span class="hljs-attr">type</span>: <span class="hljs-string">'movie'</span> }
+  )
+}
+
+</pre>
+        </td>
+      </tr>
+    
+  </tbody>
+</table>
+
+  </div>
+</body>
+</html>

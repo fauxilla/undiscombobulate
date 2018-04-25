@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>destPaths.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="../../doc-style.css" />
+  <script src="../../doc-filelist.js"></script>
+  <script>
+    var relativeDir = "../../";
+    var thisFile = "lib/modules/destPaths.js";
+    var defaultSidebar = true;
+  </script>
+  <script src="../../doc-script.js"></script>
+
+</head>
+<body>
+  <div id="sidebar_wrapper">
+    <div id="sidebar_switch">
+      <span class="tree">Files</span>
+      <span class="headings">Headings</span>
+    </div>
+    <div id="tree"></div>
+    <div id="headings">
+
+    </div>
+  </div>
+  <div id="sidebar-toggle"></div>
+  <div id="container">
+    <div class="background highlight"></div>
+<table cellpadding="0" cellspacing="0">
+  <tbody>
+    
+      <tr>
+        <td class="docs">
+          <h1>destPaths.js</h1>
+        </td>
+        <td class="code highlight"></td>
+      </tr>
+    
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1"></a>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">import</span> format <span class="hljs-keyword">from</span> <span class="hljs-string">'string-template'</span>
+<span class="hljs-keyword">import</span> {
+  join
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'path'</span>
+
+<span class="hljs-keyword">const</span> defaults = {
+  <span class="hljs-attr">archives</span>: {
+    <span class="hljs-attr">tv</span>: <span class="hljs-string">'tv'</span>,
+    <span class="hljs-attr">movie</span>: <span class="hljs-string">'movies'</span>
+  },
+  <span class="hljs-attr">tv</span>: {
+    <span class="hljs-attr">path</span>: <span class="hljs-string">'{archive}/{title}/Season {S}/'</span>,
+    <span class="hljs-attr">nfo</span>: <span class="hljs-string">'{base}'</span>,
+    <span class="hljs-attr">feature</span>: <span class="hljs-string">'{title} S{SS}E{EE}{ext}'</span>,
+    <span class="hljs-attr">sample</span>: <span class="hljs-string">'{title} S{SS}E{EE}-sample{ext}'</span>,
+    <span class="hljs-attr">subtitles</span>: <span class="hljs-string">'{title} S{SS}E{EE}{ext}'</span>
+  },
+  <span class="hljs-attr">movie</span>: {
+    <span class="hljs-attr">path</span>: <span class="hljs-string">'{archive}/{title} ({year})'</span>,
+    <span class="hljs-attr">feature</span>: <span class="hljs-string">'{title} ({year}){ext}'</span>,
+    <span class="hljs-attr">sample</span>: <span class="hljs-string">'{title} (sample){ext}'</span>,
+    <span class="hljs-attr">subtitles</span>: <span class="hljs-string">'{title} ({year}){ext}'</span>
+  }
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">destPaths</span> (<span class="hljs-params">{ meta, logger, opt }</span>) </span>{
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-2" id="section-2"></a>
+</div>
+<p>eslint-disable-next-line no-unused-vars</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">  <span class="hljs-keyword">const</span> log = logger(<span class="hljs-string">'destPaths'</span>)
+  opt = <span class="hljs-built_in">Object</span>.assign(defaults, opt.destPaths)
+  meta.files.forEach(<span class="hljs-function">(<span class="hljs-params">file</span>) =&gt;</span> {
+    <span class="hljs-keyword">if</span> (!file.type || file.type === <span class="hljs-string">'no-type'</span>) <span class="hljs-keyword">return</span>
+    <span class="hljs-keyword">const</span> context = <span class="hljs-built_in">Object</span>.assign(
+      {},
+      file,
+      meta.placeholders,
+      { <span class="hljs-attr">archive</span>: opt.archives[meta.tmdb.type] }
+    )
+    file.destPath = join(
+      format(opt[meta.tmdb.type].path, context),
+      format(opt[meta.tmdb.type][file.type], context)
+    )
+  })
+}
+
+</pre>
+        </td>
+      </tr>
+    
+  </tbody>
+</table>
+
+  </div>
+</body>
+</html>

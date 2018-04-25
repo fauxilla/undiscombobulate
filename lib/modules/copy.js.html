@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>copy.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="../../doc-style.css" />
+  <script src="../../doc-filelist.js"></script>
+  <script>
+    var relativeDir = "../../";
+    var thisFile = "lib/modules/copy.js";
+    var defaultSidebar = true;
+  </script>
+  <script src="../../doc-script.js"></script>
+
+</head>
+<body>
+  <div id="sidebar_wrapper">
+    <div id="sidebar_switch">
+      <span class="tree">Files</span>
+      <span class="headings">Headings</span>
+    </div>
+    <div id="tree"></div>
+    <div id="headings">
+
+    </div>
+  </div>
+  <div id="sidebar-toggle"></div>
+  <div id="container">
+    <div class="background highlight"></div>
+<table cellpadding="0" cellspacing="0">
+  <tbody>
+    
+      <tr>
+        <td class="docs">
+          <h1>copy.js</h1>
+        </td>
+        <td class="code highlight"></td>
+      </tr>
+    
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1"></a>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">import</span> progress <span class="hljs-keyword">from</span> <span class="hljs-string">'progress-stream'</span>
+<span class="hljs-keyword">import</span> ProgressBar <span class="hljs-keyword">from</span> <span class="hljs-string">'cli-progress-bar'</span>
+<span class="hljs-keyword">import</span> {
+  createReadStream,
+  createWriteStream
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'fs'</span>
+<span class="hljs-keyword">import</span> {
+  parse
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'path'</span>
+<span class="hljs-keyword">import</span> {
+  mkdirpSync
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'fs-extra'</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">copy</span> (<span class="hljs-params">{ meta, logger }</span>) </span>{
+  <span class="hljs-keyword">const</span> log = logger(<span class="hljs-string">'copy'</span>)
+  <span class="hljs-keyword">const</span> workers = meta.files.filter(<span class="hljs-function">(<span class="hljs-params">f</span>) =&gt;</span> f.destPath).map(<span class="hljs-function">(<span class="hljs-params">file</span>) =&gt;</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Promise</span>(<span class="hljs-function">(<span class="hljs-params">resolve, reject</span>) =&gt;</span> {
+      <span class="hljs-keyword">const</span> input = createReadStream(file.path)
+      <span class="hljs-keyword">const</span> destPath = parse(file.destPath)
+      mkdirpSync(destPath.dir)
+      <span class="hljs-keyword">const</span> output = createWriteStream(file.destPath)
+      <span class="hljs-keyword">const</span> reporter = progress({
+        <span class="hljs-attr">length</span>: file.size,
+        <span class="hljs-attr">time</span>: <span class="hljs-number">100</span>
+      })
+      <span class="hljs-keyword">const</span> bar = <span class="hljs-keyword">new</span> ProgressBar()
+      bar.show(destPath.base, <span class="hljs-number">0</span>)
+      reporter.on(<span class="hljs-string">'progress'</span>, ({ percentage }) =&gt; {
+        bar.show(destPath.base, percentage / <span class="hljs-number">100</span>)
+      })
+      output.on(<span class="hljs-string">'close'</span>, () =&gt; {
+        bar.hide()
+        log(<span class="hljs-string">`copied <span class="hljs-subst">${destPath.base}</span>`</span>)
+        resolve()
+      })
+      input
+        .pipe(reporter)
+        .pipe(output)
+    })
+  })
+  <span class="hljs-keyword">while</span> (workers.length) <span class="hljs-keyword">await</span> workers.pop()()
+  meta.copied = <span class="hljs-literal">true</span>
+}
+
+</pre>
+        </td>
+      </tr>
+    
+  </tbody>
+</table>
+
+  </div>
+</body>
+</html>

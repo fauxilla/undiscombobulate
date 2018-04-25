@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>skip.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="../../doc-style.css" />
+  <script src="../../doc-filelist.js"></script>
+  <script>
+    var relativeDir = "../../";
+    var thisFile = "lib/modules/skip.js";
+    var defaultSidebar = true;
+  </script>
+  <script src="../../doc-script.js"></script>
+
+</head>
+<body>
+  <div id="sidebar_wrapper">
+    <div id="sidebar_switch">
+      <span class="tree">Files</span>
+      <span class="headings">Headings</span>
+    </div>
+    <div id="tree"></div>
+    <div id="headings">
+
+    </div>
+  </div>
+  <div id="sidebar-toggle"></div>
+  <div id="container">
+    <div class="background highlight"></div>
+<table cellpadding="0" cellspacing="0">
+  <tbody>
+    
+      <tr>
+        <td class="docs">
+          <h1>skip.js</h1>
+        </td>
+        <td class="code highlight"></td>
+      </tr>
+    
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1"></a>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">import</span> hjson <span class="hljs-keyword">from</span> <span class="hljs-string">'hjson'</span>
+<span class="hljs-keyword">import</span> {
+  readFile
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'mz/fs'</span>
+
+<span class="hljs-keyword">const</span> defaults = {
+  <span class="hljs-attr">retryAfter</span>: <span class="hljs-number">1</span>
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">skip</span> (<span class="hljs-params">{ meta, logger, opt }</span>) </span>{
+  <span class="hljs-keyword">const</span> log = logger(<span class="hljs-string">'skip'</span>)
+  opt = <span class="hljs-built_in">Object</span>.assign(defaults, opt)
+  <span class="hljs-keyword">const</span> dump = meta.files.find(<span class="hljs-function">(<span class="hljs-params">file</span>) =&gt;</span> file.type === <span class="hljs-string">'dump'</span>)
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-2" id="section-2"></a>
+</div>
+<p>if there's no dump file, it hasn't been tried before, don't skip</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">  <span class="hljs-keyword">if</span> (!dump) <span class="hljs-keyword">return</span>
+  <span class="hljs-keyword">const</span> err = hjson.parse(<span class="hljs-keyword">await</span> readFile(dump.path, <span class="hljs-string">'utf8'</span>)).errorStack
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-3" id="section-3"></a>
+</div>
+<p>if there's no error, this folder was processed successfuly, skip it</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">  <span class="hljs-keyword">if</span> (!err) {
+    log(<span class="hljs-string">`already processed: <span class="hljs-subst">${meta.srcRootDir}</span>`</span>)
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'skip'</span>)
+  }
+  <span class="hljs-keyword">const</span> hours = <span class="hljs-built_in">Math</span>.floor((dump.mtimeMs - <span class="hljs-built_in">Date</span>.now()) / (<span class="hljs-number">1000</span> * <span class="hljs-number">60</span> * <span class="hljs-number">60</span>))
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-4" id="section-4"></a>
+</div>
+<p>if there's an error, but we've tried recently, skip it this time.</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">  <span class="hljs-keyword">if</span> (hours &lt; opt.retryAfter) {
+    log(<span class="hljs-string">`skip now, try later: <span class="hljs-subst">${meta.srcRootDir}</span>`</span>)
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'skip'</span>)
+  }
+}
+
+</pre>
+        </td>
+      </tr>
+    
+  </tbody>
+</table>
+
+  </div>
+</body>
+</html>

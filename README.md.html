@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>README.md</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="doc-style.css" />
+  <script src="doc-filelist.js"></script>
+  <script>
+    var relativeDir = "";
+    var thisFile = "README.md";
+    var defaultSidebar = true;
+  </script>
+  <script src="doc-script.js"></script>
+
+</head>
+<body>
+  <div id="sidebar_wrapper">
+    <div id="sidebar_switch">
+      <span class="tree">Files</span>
+      <span class="headings">Headings</span>
+    </div>
+    <div id="tree"></div>
+    <div id="headings">
+
+      <div class="heading h2">
+        <a href="#undiscombobulate">undiscombobulate</a>
+      </div>
+
+      <div class="heading h2">
+        <a href="#install-and-run-binaries">install &amp;amp; run binaries</a>
+      </div>
+
+      <div class="heading h2">
+        <a href="#install-and-run-from-source">install &amp;amp; run from source</a>
+      </div>
+
+      <div class="heading h2">
+        <a href="#clone-repo-and-build-your-own-binaries">clone repo &amp;amp; build your own binaries</a>
+      </div>
+
+      <div class="heading h2">
+        <a href="#run-as-a-service">run as a service</a>
+      </div>
+
+      <div class="heading h2">
+        <a href="#run-from-cli">run from cli</a>
+      </div>
+
+      <div class="heading h2">
+        <a href="#watching-vs-polling">watching vs polling</a>
+      </div>
+
+      <div class="heading h2">
+        <a href="#windows">windows</a>
+      </div>
+
+      <div class="heading h2">
+        <a href="#modules">modules</a>
+      </div>
+
+      <div class="heading h2">
+        <a href="#scripts">scripts</a>
+      </div>
+
+      <div class="heading h2">
+        <a href="#developing-testing-contributing">developing / testing / contributing</a>
+      </div>
+
+    </div>
+  </div>
+  <div id="sidebar-toggle"></div>
+  <div id="container">
+    <div class="docs markdown"><div class="pilwrap" id="undiscombobulate">
+  <h2>
+    <a href="#undiscombobulate" name="undiscombobulate" class="pilcrow"></a>
+undiscombobulate
+  </h2>
+</div>
+<p><img src="https://img.shields.io/npm/l/undiscombobulate.svg" alt="license"> <img src="https://img.shields.io/github/issues/fauxilla/undiscombobulate.svg" alt="github-issues"> <img src="https://img.shields.io/github/stars/fauxilla/undiscombobulate.svg" alt="stars"> <img src="https://img.shields.io/github/forks/fauxilla/undiscombobulate.svg" alt="forks"></p>
+<p>extensible post processing for movies &amp; tv</p>
+<p>Be aware this is alpha quality, don't run it on media archives you don't want to lose.</p>
+<div class="pilwrap" id="install-and-run-binaries">
+  <h2>
+    <a href="#install-and-run-binaries" name="install-and-run-binaries" class="pilcrow"></a>
+install &amp; run binaries
+  </h2>
+</div>
+<p>This is convenient because you don't need to install nodejs &amp; npm.</p>
+<ul>
+<li>go to release page &amp; download binary</li>
+<li>copy <code>config.sample.hjson</code> from this repo to <code>config.hjson</code> in the same
+directory as your binary and configure paths
+<a href="http://hjson.org/">hjson reference</a></li>
+</ul>
+<div class="pilwrap" id="install-and-run-from-source">
+  <h2>
+    <a href="#install-and-run-from-source" name="install-and-run-from-source" class="pilcrow"></a>
+install &amp; run from source
+  </h2>
+</div>
+<ul>
+<li>be awesome</li>
+<li>install nodejs &amp; npm</li>
+<li>clone this repo somewhere like <code>/opt/</code></li>
+<li>copy <code>config.sample.hjson</code> to <code>config.hjson</code> and configure paths
+<a href="http://hjson.org/">hjson reference</a></li>
+<li><code>npm i</code> to install all the things</li>
+<li><code>npm run babel</code> to transpile code</li>
+<li>start with <code>npm start</code></li>
+</ul>
+<div class="pilwrap" id="clone-repo-and-build-your-own-binaries">
+  <h2>
+    <a href="#clone-repo-and-build-your-own-binaries" name="clone-repo-and-build-your-own-binaries" class="pilcrow"></a>
+clone repo &amp; build your own binaries
+  </h2>
+</div>
+<ul>
+<li>clone this repo</li>
+<li><code>npm i</code> to get dependencies</li>
+<li><code>npm run babel</code> to transpile to node 9</li>
+<li><code>npm run pkg-linux</code> or <code>npm run pkg-win</code></li>
+<li>binary will be output to <code>bin/</code></li>
+</ul>
+<div class="pilwrap" id="run-as-a-service">
+  <h2>
+    <a href="#run-as-a-service" name="run-as-a-service" class="pilcrow"></a>
+run as a service
+  </h2>
+</div>
+<ul>
+<li>copy binary or clone repo to <code>/opt/discombobulate</code></li>
+<li>create config in that dir</li>
+<li>copy <code>undiscombobulate.service</code> into <code>/etc/systemd/system</code></li>
+<li>modify <code>ExecStart</code> and <code>WorkingDirectory</code> paths in that file</li>
+<li>make <code>dist/service.js</code> executable as in <code>chmod +x dist/service.js</code></li>
+<li>start with <code>sudo systemctl start undiscombobulate.service</code></li>
+<li>check logs with <code>sudo journalctl -u undiscombobulate.service</code></li>
+<li>start on boot with <code>sudo systemctl enable undiscombobulate.service</code></li>
+</ul>
+<div class="pilwrap" id="run-from-cli">
+  <h2>
+    <a href="#run-from-cli" name="run-from-cli" class="pilcrow"></a>
+run from cli
+  </h2>
+</div>
+<p>There are a few command line args which are helpful for testing:</p>
+<ul>
+<li><code>--once</code> / <code>-o</code> : forces 'run once' mode.</li>
+<li><code>--no-dump</code> / <code>-n</code> : won't write dump files to source directories.</li>
+</ul>
+<p>everytime undisco processes a directory, it will write a dump of meta / logs to the source directory. Next time undisco processes that directory, it will skip processing it if its been successfully processed already. Therefore, using the <code>-n</code> option means that undisco won't know a directory has already been processed next time it looks at it.</p>
+<p>if you have source you can <code>npm start</code>, if you want to pass in command line args it looks like <code>npm start -- -n -o</code></p>
+<div class="pilwrap" id="watching-vs-polling">
+  <h2>
+    <a href="#watching-vs-polling" name="watching-vs-polling" class="pilcrow"></a>
+watching vs polling
+  </h2>
+</div>
+<p>In the options you can specify a watch option (true / false) or a poll option
+(minutes or false). Watching file systems in general is pretty shady, it might
+work for you, it might not. Polling isnt great either because theres always
+a delay, and your hard drives wont go to sleep. So try watching and if that
+doesn't work fall back to polling.</p>
+<div class="pilwrap" id="windows">
+  <h2>
+    <a href="#windows" name="windows" class="pilcrow"></a>
+windows
+  </h2>
+</div>
+<p>Untested on windows. You'd need to change all the paths in <code>config.hjson</code> so the slash is <code>\</code>, and ensure you had <code>unrar</code> in your path. There's probably other problems as well, I'd love to hear from someone about this.</p>
+<div class="pilwrap" id="modules">
+  <h2>
+    <a href="#modules" name="modules" class="pilcrow"></a>
+modules
+  </h2>
+</div>
+<p>Undisco has a modular architecture, and is very easy to extend. You could create your own module in the root dir, then add the full list of modules to <code>config.hjson</code>
+with the path <code>../myModule</code>. It might look like this:</p>
+<pre><code>{
+  modules: [
+    listFiles
+    skip
+    unrar
+    readNfo
+    parseName
+    tmdb
+    ../myModule
+    placeholders
+    ignore
+    destPaths
+    copy
+    clean
+  ]
+}
+</code></pre>
+<p>Take a look in <code>/modules/</code> for examples of how modules work.</p>
+<div class="pilwrap" id="scripts">
+  <h2>
+    <a href="#scripts" name="scripts" class="pilcrow"></a>
+scripts
+  </h2>
+</div>
+<ul>
+<li><strong>npm run start</strong> : <code>cross-env DEBUG=undisco* node dist</code></li>
+<li><strong>npm run build</strong> : <code>npm run babel &amp;&amp; npm run client:prodn &amp;&amp; npm run docs &amp;&amp; cp docs/README.md.html docs/index.html &amp;&amp; npm run gh-pages</code></li>
+<li><strong>npm run readme</strong> : <code>node-readme</code></li>
+<li><strong>npm run babel</strong> : <code>babel lib -d dist --ignore client</code></li>
+<li><strong>npm run babel:watch</strong> : <code>babel lib --watch -d dist --ignore client</code></li>
+<li><strong>npm run test</strong> : <code>cross-env DEBUG=undisco* NODE_ENV=test mocha --compilers js:babel-register test</code></li>
+<li><strong>npm run test:watch</strong> : <code>cross-env DEBUG=undisco* NODE_ENV=test mocha --compilers js:babel-register --watch test</code></li>
+<li><strong>npm run docs</strong> : <code>npm run readme &amp;&amp; rm -fr ./docs/* &amp;&amp; docker -o ./docs -I -x dist,.README.md,test/fixtures,node_modules,docs</code></li>
+<li><strong>npm run gh-pages</strong> : <code>gh-pages -d docs</code></li>
+<li><strong>npm run pkg-linux</strong> : <code>pkg . --targets node8-linux --output bin/undisco-linux-x64</code></li>
+<li><strong>npm run pkg-win</strong> : <code>pkg . --targets node8-win --output bin/undisco-win-x64.exe</code></li>
+<li><strong>npm run pkg</strong> : <code>npm run pkg-linux &amp;&amp; npm run pkg-win</code></li>
+</ul>
+<div class="pilwrap" id="developing-testing-contributing">
+  <h2>
+    <a href="#developing-testing-contributing" name="developing-testing-contributing" class="pilcrow"></a>
+developing / testing / contributing
+  </h2>
+</div>
+<p>Suggestions / contributions are absolutely welcome.</p>
+<p>Use <code>npm run babel</code> or <code>npm run babel:watch</code> to transpile source from <code>lib</code> to
+<code>dist</code>, then <code>npm start</code> to run.</p>
+<p>test with <code>npm run test</code> or <code>npm run test:watch</code></p>
+<p>If you want to contribute anonymously, take a look at <a href="https://www.gitmask.com/">gitmask</a>, you basically upload your commit to gitmask and it destroys your id before making a PR.</p>
+</div>
+  </div>
+</body>
+</html>

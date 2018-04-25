@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>readDir.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="../doc-style.css" />
+  <script src="../doc-filelist.js"></script>
+  <script>
+    var relativeDir = "../";
+    var thisFile = "lib/readDir.js";
+    var defaultSidebar = true;
+  </script>
+  <script src="../doc-script.js"></script>
+
+</head>
+<body>
+  <div id="sidebar_wrapper">
+    <div id="sidebar_switch">
+      <span class="tree">Files</span>
+      <span class="headings">Headings</span>
+    </div>
+    <div id="tree"></div>
+    <div id="headings">
+
+    </div>
+  </div>
+  <div id="sidebar-toggle"></div>
+  <div id="container">
+    <div class="background highlight"></div>
+<table cellpadding="0" cellspacing="0">
+  <tbody>
+    
+      <tr>
+        <td class="docs">
+          <h1>readDir.js</h1>
+        </td>
+        <td class="code highlight"></td>
+      </tr>
+    
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1"></a>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">import</span> {
+  readdir,
+  stat
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'mz/fs'</span>
+<span class="hljs-keyword">import</span> {
+  join,
+  parse
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'path'</span>
+<span class="hljs-keyword">import</span> multimatch <span class="hljs-keyword">from</span> <span class="hljs-string">'multimatch'</span>
+
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-2" id="section-2"></a>
+</div>
+<div class="dox">
+<div class="summary">
+<p>simple dir parser, stats files, determines type
+not recursive</p>
+</div>
+<div class="body">
+</div>
+<div class="details">
+<div class="dox_tag_title">Params</div>
+<div class="dox_tag_detail">
+<span class="dox_tag_name">root</span>
+<span class="dox_type">String</span>
+</div>
+<div class="dox_tag_detail">
+<span class="dox_tag_name">options</span>
+<span class="dox_type">Object</span>
+</div>
+<div class="dox_tag_title">Returns</div>
+<div class="dox_tag_detail">
+<span class="dox_tag_name"></span>
+<span class="dox_type">Array</span>
+<span>files
+</span>
+</div>
+</div>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readDir</span> (<span class="hljs-params">root, options</span>) </span>{
+  <span class="hljs-keyword">const</span> opt = <span class="hljs-built_in">Object</span>.assign(
+    {
+      <span class="hljs-attr">dirs</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">files</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">types</span>: {}
+    },
+    options
+  )
+  <span class="hljs-keyword">let</span> paths = <span class="hljs-keyword">await</span> readdir(root)
+    .then(<span class="hljs-function">(<span class="hljs-params">paths</span>) =&gt;</span> paths.map(<span class="hljs-function">(<span class="hljs-params">path</span>) =&gt;</span> join(root, path)))
+    .catch(<span class="hljs-function"><span class="hljs-params">e</span> =&gt;</span> { <span class="hljs-keyword">throw</span> e })
+  <span class="hljs-keyword">let</span> nodes = []
+  <span class="hljs-keyword">while</span> (paths.length) {
+    <span class="hljs-keyword">const</span> path = paths.pop()
+    <span class="hljs-keyword">const</span> parsedPath = parse(path)
+    <span class="hljs-keyword">const</span> node = <span class="hljs-keyword">await</span> stat(path).catch(<span class="hljs-function"><span class="hljs-params">e</span> =&gt;</span> { <span class="hljs-keyword">throw</span> e })
+    <span class="hljs-keyword">if</span> (!opt.dirs &amp;&amp; node.isDirectory()) <span class="hljs-keyword">continue</span>
+    <span class="hljs-keyword">if</span> (!opt.files &amp;&amp; node.isFile()) <span class="hljs-keyword">continue</span>
+    nodes.push(<span class="hljs-built_in">Object</span>.assign(
+      parsedPath,
+      {
+        path,
+        <span class="hljs-attr">size</span>: node.size,
+        <span class="hljs-attr">mtimeMs</span>: node.mtimeMs,
+        <span class="hljs-attr">type</span>: <span class="hljs-built_in">Object</span>.keys(opt.types).find(<span class="hljs-function">(<span class="hljs-params">type</span>) =&gt;</span> {
+          <span class="hljs-keyword">return</span> multimatch([ parsedPath.base ], opt.types[type]).length
+        }) || <span class="hljs-string">'no-type'</span>
+      }
+    ))
+  }
+  <span class="hljs-keyword">return</span> nodes
+}
+
+</pre>
+        </td>
+      </tr>
+    
+  </tbody>
+</table>
+
+  </div>
+</body>
+</html>
