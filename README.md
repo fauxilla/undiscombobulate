@@ -103,7 +103,7 @@ Take a look in `/modules/` for examples of how modules work.
  - **npm run babel:watch** : `babel lib --watch -d dist --ignore client`
  - **npm run test** : `cross-env DEBUG=undisco* NODE_ENV=test mocha --compilers js:babel-register test`
  - **npm run test:watch** : `cross-env DEBUG=undisco* NODE_ENV=test mocha --compilers js:babel-register --watch test`
- - **npm run docs** : `npm run readme && rm -fr ./docs/* && docker -o ./docs -I -x dist,.README.md,test/fixtures,node_modules,docs,.store,config && cp --parents images/* docs`
+ - **npm run docs** : `npm run readme && rm -fr ./docs/* && docker -o ./docs -I -x dist,.README.md,test/fixtures,node_modules,docs`
  - **npm run gh-pages** : `gh-pages -d docs`
  - **npm run pkg-linux** : `pkg . --targets node8-linux --output bin/undisco-linux-x64`
  - **npm run pkg-win** : `pkg . --targets node8-win --output bin/undisco-win-x64.exe`
