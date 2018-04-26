@@ -6,7 +6,7 @@ extensible post processing for movies & tv
 
 Take a look at the awesome [annotated code](https://fauxilla.github.io/undiscombobulate/lib/index.js.html)
 
-Be aware this is alpha quality, don't run it on media archives you don't want to lose.
+Be aware the current release is alpha quality, don't run it on media archives you don't want to lose.
 
 ## install & run binaries
 
@@ -38,10 +38,11 @@ This is convenient because you don't need to install nodejs & npm.
 
 ## run as a service
 
-  * copy binary or clone repo to `/opt/discombobulate`
+  * copy binary or clone repo to `/opt/undiscombobulate`
   * create config in that dir
   * copy `undiscombobulate.service` into `/etc/systemd/system`
   * modify `ExecStart` and `WorkingDirectory` paths in that file
+  * make your entry point executable, so `chmod +x dist/index.js` if you're running from source or `chmod +x undisco-linux-x64` if you're running binaries
   * make `dist/service.js` executable as in `chmod +x dist/service.js`
   * start with `sudo systemctl start undiscombobulate.service`
   * check logs with `sudo journalctl -u undiscombobulate.service`
@@ -49,7 +50,7 @@ This is convenient because you don't need to install nodejs & npm.
 
 ## run from cli
 
-There are a few command line args which are helpful for testing:
+There are a few command line args which are helpful for testing your config:
 
  * `--once` / `-o` : forces 'run once' mode.
  * `--no-dump` / `-n` : won't write dump files to source directories.
