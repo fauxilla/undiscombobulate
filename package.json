@@ -4,7 +4,7 @@
   "description": "extensible post processing for movies & tv",
   "repository": "git://github.com/fauxilla/undiscombobulate.git",
   "homepage": "http://fauxilla.github.io/undiscombobulate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "keywords": [
     "torrent",
     "usenet",
