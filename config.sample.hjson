@@ -1,9 +1,9 @@
-
-                 _ _
- _   _ _ __   __| (_)___  ___ ___
-| | | | '_ \ / _` | / __|/ __/ _ \
-| |_| | | | | (_| | \__ \ (_| (_) |
- \__,_|_| |_|\__,_|_|___/\___\___/
+// 
+//                  _ _
+//  _   _ _ __   __| (_)___  ___ ___
+// | | | | '_ \ / _` | / __|/ __/ _ \
+// | |_| | | | | (_| | \__ \ (_| (_) |
+//  \__,_|_| |_|\__,_|_|___/\___\___/
 
 {
   // this is the folder that undiscombobulate is going to watch.
@@ -11,6 +11,13 @@
   // make sure your client moves completed downloads here once they're done
   // otherwise undisco will react to incomplete downloads and make a mess
   downloadsPath: /srv/downloads/complete
+
+  // how deep to monitor downloads dir. If you have a structure like:
+  // downloadsPath/tv and downloadsPath/movies in your completes folder, then
+  // you'd want downloadsDepth: 1. If your completes folder doesn't have
+  // subfolders like that, then you'd just use downloadsDepth: 0
+  downloadsDepth: 0
+
 
   // if `once: true`, undisco will run once, no polling or monitoring
   once: false
