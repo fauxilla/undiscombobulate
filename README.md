@@ -1,8 +1,10 @@
 ## undiscombobulate
 
-![license](https://img.shields.io/npm/l/undiscombobulate.svg) ![github-issues](https://img.shields.io/github/issues/fauxilla/undiscombobulate.svg) ![stars](https://img.shields.io/github/stars/fauxilla/undiscombobulate.svg) ![forks](https://img.shields.io/github/forks/fauxilla/undiscombobulate.svg)
+![github-issues](https://img.shields.io/github/issues/fauxilla/undiscombobulate.svg) ![stars](https://img.shields.io/github/stars/fauxilla/undiscombobulate.svg) ![forks](https://img.shields.io/github/forks/fauxilla/undiscombobulate.svg)
 
 extensible post processing for movies & tv
+
+Undisco scans your completed downloads, identifies the movie or tv episode, and copies the release into your media archive with appropriate file names.
 
 Take a look at the awesome [annotated code](https://fauxilla.github.io/undiscombobulate/lib/index.js.html)
 
