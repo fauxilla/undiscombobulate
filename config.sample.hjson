@@ -1,4 +1,4 @@
-// 
+//
 //                  _ _
 //  _   _ _ __   __| (_)___  ___ ___
 // | | | | '_ \ / _` | / __|/ __/ _ \
@@ -71,6 +71,7 @@
   skip: {
     // how long to wait before retrying the same release
     retryAfter: 6 // hours
+    ignoreDump: false
   }
 
   tmdb: {
