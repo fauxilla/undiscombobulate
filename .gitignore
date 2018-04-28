@@ -5,3 +5,4 @@ config.hjson
 undisco.dump
 test/fixtures/nockBack/**/*
 docs
+unrar.exe

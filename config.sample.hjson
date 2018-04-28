@@ -7,16 +7,20 @@
 
 {
   // this is the folder that undiscombobulate is going to watch.
-  // it won't react to subfolders
-  // make sure your client moves completed downloads here once they're done
-  // otherwise undisco will react to incomplete downloads and make a mess
+  // it's best to have your download client move completed downloads to a
+  // `complete` folder, and have undisco monitor that folder.
+  
+  // linux example:
   downloadsPath: /srv/downloads/complete
+  
+  // windows example
+  // downloadsPath: C:\home\faux\downloads\complete
 
   // how deep to monitor downloads dir. If you have a structure like:
   // downloadsPath/tv and downloadsPath/movies in your completes folder, then
   // you'd want downloadsDepth: 1. If your completes folder doesn't have
   // subfolders like that, then you'd just use downloadsDepth: 0
-  downloadsDepth: 0
+  downloadsDepth: 1
 
 
   // if `once: true`, undisco will run once, no polling or monitoring
