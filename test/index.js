@@ -85,4 +85,16 @@ describe('undisco', () => {
       })
     })
   })
+  it('extract rar', (done) => {
+    nockBack('4', (writeRequests) => {
+      const opt = Object.assign({}, config, {downloadsPath: 'test/fixtures/4'})
+      undisco(opt)
+      .then((dump) => {
+        // console.log(dump[0].files)
+        assert(dump[0].placeholders.title, 'Fringe')
+        writeRequests()
+        done()
+      })
+    })
+  }).timeout(5000)
 })
