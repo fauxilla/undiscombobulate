@@ -8,8 +8,12 @@ import sinon from 'sinon'
 import http from 'http'
 import hjson from 'hjson'
 import {
-  readFileSync
+  readFileSync,
+  statSync
 } from 'fs'
+import {
+  emptyDirSync
+} from 'fs-extra'
 
 // eslint-disable-next-line no-unused-vars
 const dbg = debug('undisco:test')
@@ -45,6 +49,8 @@ describe('undisco', () => {
     // create spy
     // sinon.spy(cloudinary.api, 'resources')
     this.requestSpy = sinon.spy(http, 'request')
+    emptyDirSync(config.destPaths.archives.tv)
+    emptyDirSync(config.destPaths.archives.movie)
   })
   afterEach(function () {
     this.requestSpy.restore()
@@ -62,12 +68,14 @@ describe('undisco', () => {
       })
     })
   })
+
   it('resolve tv from path', (done) => {
     nockBack('2', (writeRequests) => {
       const opt = Object.assign({}, config, {downloadsPath: 'test/fixtures/2'})
       undisco(opt)
       .then((dump) => {
         assert(dump[0].placeholders.title, 'Fringe')
+        assert.doesNotThrow(() => statSync(dump[0].files[0].destPath))
         writeRequests()
         done()
       })
@@ -80,6 +88,7 @@ describe('undisco', () => {
       .then((dump) => {
         // console.log(dump[0].files)
         assert(dump[0].placeholders.title, 'Old Boy')
+        assert.doesNotThrow(() => statSync(dump[0].files[0].destPath))
         writeRequests()
         done()
       })
@@ -92,6 +101,7 @@ describe('undisco', () => {
       .then((dump) => {
         // console.log(dump[0].files)
         assert(dump[0].placeholders.title, 'Fringe')
+        assert.doesNotThrow(() => statSync(dump[0].files[0].destPath))
         writeRequests()
         done()
       })
