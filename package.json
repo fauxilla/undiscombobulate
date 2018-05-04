@@ -46,6 +46,7 @@
     "pretty-bytes": "^4.0.2",
     "progress-stream": "^2.0.0",
     "sequelize": "^4.37.6",
+    "sqlite3": "^4.0.0",
     "string-template": "^1.0.0",
     "unrar": "^0.1.7"
   },
