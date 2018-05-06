@@ -33,9 +33,12 @@
     "pkg": "npm run pkg-linux && npm run pkg-win"
   },
   "dependencies": {
+    "bunyan": "^1.8.12",
+    "chalk": "^2.4.1",
     "chokidar": "^2.0.3",
     "cli-progress-bar": "^1.0.1",
     "command-line-args": "^5.0.2",
+    "cuid": "^2.1.1",
     "debug": "^2.6.8",
     "flashheart": "^2.9.0",
     "font-ascii": "^1.1.16",
@@ -45,8 +48,11 @@
     "mz": "^2.7.0",
     "pretty-bytes": "^4.0.2",
     "progress-stream": "^2.0.0",
+    "sequelize": "^4.37.6",
+    "sqlite3": "^4.0.0",
     "string-template": "^1.0.0",
-    "unrar": "^0.1.7"
+    "unrar": "^0.1.7",
+    "winston": "^2.4.2"
   },
   "devDependencies": {
     "babel-cli": "^6.16.0",
