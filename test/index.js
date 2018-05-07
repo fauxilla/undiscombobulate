@@ -5,8 +5,11 @@ import assert from 'assert'
 import debug from 'debug'
 import undisco from '../lib'
 import sinon from 'sinon'
-import http from 'http'
+// import http from 'http'
 import hjson from 'hjson'
+import {
+  LogSql
+} from '../lib/log'
 import {
   readFileSync,
   statSync
@@ -46,12 +49,16 @@ describe('undisco', () => {
   beforeEach(function () {
     // create spy
     // sinon.spy(cloudinary.api, 'resources')
-    this.requestSpy = sinon.spy(http, 'request')
+    this.stubWrite = sinon.stub(LogSql.prototype, 'write')
+    this.stubLastLog = sinon.stub(LogSql, 'lastLog').resolves()
+    // this.requestSpy = sinon.spy(http, 'request')
     emptyDirSync(config.destPaths.archives.tv)
     emptyDirSync(config.destPaths.archives.movie)
   })
   afterEach(function () {
-    this.requestSpy.restore()
+    this.stubWrite.restore()
+    this.stubLastLog.restore()
+    // this.requestSpy.restore()
     // cloudinary.api.resources.restore()
   })
   it('resolve movie from path', (done) => {
