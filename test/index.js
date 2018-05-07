@@ -31,10 +31,8 @@ nockBack.fixtures = 'test/fixtures/nockBack'
 const config = Object.assign(
   hjson.parse(readFileSync('./config.hjson', 'utf8')),
   {
-    once: true,
-    dump: {
-      writeDump: false
-    },
+    command: 'once',
+    done: { force: true },
     destPaths: {
       archives: {
         tv: '/tmp/tv',
@@ -61,13 +59,12 @@ describe('undisco', () => {
       const opt = Object.assign({}, config, {downloadsPath: 'test/fixtures/1'})
       undisco(opt)
       .then((dump) => {
-        // console.log(dump[0].files)
         assert(dump[0].tmdb.title, 'Hostiles')
         writeRequests()
         done()
       })
     })
-  })
+  }).timeout(5000)
 
   it('resolve tv from path', (done) => {
     nockBack('2', (writeRequests) => {
@@ -80,7 +77,7 @@ describe('undisco', () => {
         done()
       })
     })
-  })
+  }).timeout(5000)
   it('resolve from nfo', (done) => {
     nockBack('3', (writeRequests) => {
       const opt = Object.assign({}, config, {downloadsPath: 'test/fixtures/3'})
@@ -93,7 +90,7 @@ describe('undisco', () => {
         done()
       })
     })
-  })
+  }).timeout(5000)
   it('extract rar', (done) => {
     nockBack('4', (writeRequests) => {
       const opt = Object.assign({}, config, {downloadsPath: 'test/fixtures/4'})
