@@ -6,36 +6,40 @@
 //  \__,_|_| |_|\__,_|_|___/\___\___/
 
 {
+  // =================================================================== path ==
+  //
   // this is the folder that undiscombobulate is going to watch.
   // it's best to have your download client move completed downloads to a
   // `complete` folder, and have undisco monitor that folder.
+  // on windows this might look like:
+  // path: C:\home\faux\downloads\complete
+  path: /srv/downloads/complete
 
-  // linux example:
-  downloadsPath: /srv/downloads/complete
-
-  // windows example
-  // downloadsPath: C:\home\faux\downloads\complete
-
+  // ================================================================== depth ==
+  //
   // how deep to monitor downloads dir. If you have a structure like:
   // downloadsPath/tv and downloadsPath/movies in your completes folder, then
-  // you'd want downloadsDepth: 1. If your completes folder doesn't have
-  // subfolders like that, then you'd just use downloadsDepth: 0
-  downloadsDepth: 1
+  // you'd want depth: 2.
+  depth: 2
 
-
-  // if `once: true`, undisco will run once, no polling or monitoring
-  once: false
-
-  // if `watch: true`, undisco will monitor your fs and react immediately
-  // to changes. There's a bunch of problems with watching file systems
-  // generally, like if you're using a network share, or docker, then
-  // this probably won't work
+  // =========================================================== watch / poll ==
+  //
+  // you need to choose to 'watch' your path (get notified of changes), or to
+  // 'poll' your path (check every few minutes). Watching is generally better,
+  // but in certain cases (network share, docker...) it might not work.
+  // if watch doesn't seem to be working then set watch: false and polling will
+  // be used.
   watch: true
-
-  // as a fallback to 'watch' you can poll the directory every few minutes,
-  // but this won't let your HDD sleep.
   poll: 5 // minutes
 
+  // =============================================================== logLevel ==
+  //
+  // set how verbose you want your logs to be. either 'debug' or 'info'.
+  logLevel: info
+
+
+  // ================================================================ modules ==
+  //
   // module options go here
   // see defaults in module source for all available options
   // options are only merged with defaults in the source to the first level
@@ -75,21 +79,20 @@
   skip: {
     // how long to wait before retrying the same release
     retryAfter: 6 // hours
-    ignoreDump: false
   }
 
   tmdb: {
     // your tmdb api key
     // create account at themoviedb.org
     // looks like this:
-    apiKey: a299363d2671f228fbedda6d180755fb
+    apiKey: a298763d2671f228fbedda6d180755fb
   }
 
   notifications: {
     pushbullet: {
       // push bullet access token
       // lookslike this:
-      accessToken: o.tWesVUMefJgb5pwKnWp7Yc0PGPNK0Dnh
+      accessToken: o.tWftVUMefJgb5pwKnWp7Yc0PGPNK0Dnh
     }
   }
 }
