@@ -63,7 +63,7 @@ describe('undisco', () => {
   })
   it('resolve movie from path', (done) => {
     nockBack('1', (writeRequests) => {
-      const opt = Object.assign({}, config, {downloadsPath: 'test/fixtures/1'})
+      const opt = Object.assign({}, config, {path: 'test/fixtures/1'})
       undisco(opt)
       .then((dump) => {
         assert(dump[0].tmdb.title, 'Hostiles')
@@ -75,7 +75,7 @@ describe('undisco', () => {
 
   it('resolve tv from path', (done) => {
     nockBack('2', (writeRequests) => {
-      const opt = Object.assign({}, config, {downloadsPath: 'test/fixtures/2'})
+      const opt = Object.assign({}, config, {path: 'test/fixtures/2'})
       undisco(opt)
       .then((dump) => {
         assert(dump[0].placeholders.title, 'Fringe')
@@ -87,7 +87,7 @@ describe('undisco', () => {
   }).timeout(5000)
   it('resolve from nfo', (done) => {
     nockBack('3', (writeRequests) => {
-      const opt = Object.assign({}, config, {downloadsPath: 'test/fixtures/3'})
+      const opt = Object.assign({}, config, {path: 'test/fixtures/3'})
       undisco(opt)
       .then((dump) => {
         // console.log(dump[0].files)
@@ -100,7 +100,7 @@ describe('undisco', () => {
   }).timeout(5000)
   it('extract rar', (done) => {
     nockBack('4', (writeRequests) => {
-      const opt = Object.assign({}, config, {downloadsPath: 'test/fixtures/4'})
+      const opt = Object.assign({}, config, {path: 'test/fixtures/4'})
       undisco(opt)
       .then((dump) => {
         // console.log(dump[0].files)
