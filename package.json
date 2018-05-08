@@ -33,6 +33,7 @@
     "pkg": "npm run pkg-linux && npm run pkg-win"
   },
   "dependencies": {
+    "babel-eslint": "^8.2.3",
     "bunyan": "^1.8.12",
     "chalk": "^2.4.1",
     "chokidar": "^2.0.3",
