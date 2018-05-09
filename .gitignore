@@ -8,4 +8,5 @@ docs
 unrar.exe
 movies
 tv
-db.sqlite
+undisco.log*
+store.json
