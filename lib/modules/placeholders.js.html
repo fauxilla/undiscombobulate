@@ -47,10 +47,10 @@
         </td>
         <td class="code highlight">
           <pre class="javascript"><span class="hljs-keyword">import</span> {
-  get <span class="hljs-keyword">as</span> _get
+  get
 } <span class="hljs-keyword">from</span> <span class="hljs-string">'lodash'</span>
 
-<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">placeholders</span> (<span class="hljs-params">{ meta, logger }</span>) </span>{
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">placeholders</span> (<span class="hljs-params">{ meta, getLog }</span>) </span>{
 </pre>
         </td>
       </tr>
@@ -64,21 +64,44 @@
 
         </td>
         <td class="code highlight">
-          <pre class="javascript">  <span class="hljs-keyword">const</span> log = logger(<span class="hljs-string">'placeholders'</span>)
-  <span class="hljs-keyword">const</span> get = <span class="hljs-function">(<span class="hljs-params">path, def</span>) =&gt;</span> _get(meta, path, def)
+          <pre class="javascript">  <span class="hljs-keyword">const</span> { debug } = getLog(<span class="hljs-string">'placeholders'</span>)
   meta.placeholders = {
     <span class="hljs-attr">title</span>: (
-      get(<span class="hljs-string">'tmdb.original_title'</span>) ||
-      get(<span class="hljs-string">'tmdb.original_name'</span>) ||
+      get(meta, <span class="hljs-string">'tmdb.original_title'</span>) ||
+      get(meta, <span class="hljs-string">'tmdb.original_name'</span>) ||
       <span class="hljs-string">'no-title'</span>
     ),
-    <span class="hljs-attr">S</span>: get(<span class="hljs-string">'parsedName.season'</span>, <span class="hljs-string">''</span>).replace(<span class="hljs-regexp">/^0/</span>, <span class="hljs-string">''</span>),
-    <span class="hljs-attr">SS</span>: get(<span class="hljs-string">'parsedName.season'</span>, <span class="hljs-string">''</span>),
-    <span class="hljs-attr">E</span>: get(<span class="hljs-string">'parsedName.episode'</span>, <span class="hljs-string">''</span>).replace(<span class="hljs-regexp">/^0/</span>, <span class="hljs-string">''</span>),
-    <span class="hljs-attr">EE</span>: get(<span class="hljs-string">'parsedName.episode'</span>, <span class="hljs-string">''</span>),
-    <span class="hljs-attr">rating</span>: get(<span class="hljs-string">'tmdb.vote_average'</span>) || <span class="hljs-string">'0'</span>,
-    <span class="hljs-attr">year</span>: get(<span class="hljs-string">'tmdb.release_date'</span>, <span class="hljs-string">'year'</span>).slice(<span class="hljs-number">0</span>, <span class="hljs-number">4</span>)
+    <span class="hljs-attr">rating</span>: get(meta, <span class="hljs-string">'tmdb.vote_average'</span>) || <span class="hljs-string">'0'</span>,
+    <span class="hljs-attr">year</span>: get(meta, <span class="hljs-string">'tmdb.release_date'</span>, <span class="hljs-string">'year'</span>).slice(<span class="hljs-number">0</span>, <span class="hljs-number">4</span>),
+    <span class="hljs-attr">S</span>: get(meta, <span class="hljs-string">'parsedName.season'</span>, <span class="hljs-string">''</span>).replace(<span class="hljs-regexp">/^0/</span>, <span class="hljs-string">''</span>),
+    <span class="hljs-attr">SS</span>: get(meta, <span class="hljs-string">'parsedName.season'</span>, <span class="hljs-string">''</span>),
+    <span class="hljs-attr">E</span>: get(meta, <span class="hljs-string">'parsedName.episode'</span>, <span class="hljs-string">''</span>).replace(<span class="hljs-regexp">/^0/</span>, <span class="hljs-string">''</span>),
+    <span class="hljs-attr">EE</span>: get(meta, <span class="hljs-string">'parsedName.episode'</span>, <span class="hljs-string">''</span>)
   }
+
+  meta.files.forEach(<span class="hljs-function">(<span class="hljs-params">file</span>) =&gt;</span> {
+    <span class="hljs-keyword">if</span> (!file.parsedName) <span class="hljs-keyword">return</span>
+    <span class="hljs-built_in">Object</span>.assign(
+      file,
+      {
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-3" id="section-3"></a>
+</div>
+<p>file.parsedName does not get season</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">        E: get(file, <span class="hljs-string">'parsedName.episode'</span>, <span class="hljs-string">''</span>).replace(<span class="hljs-regexp">/^0/</span>, <span class="hljs-string">''</span>),
+        <span class="hljs-attr">EE</span>: get(file, <span class="hljs-string">'parsedName.episode'</span>, <span class="hljs-string">''</span>)
+      }
+    )
+  })
 }
 
 </pre>

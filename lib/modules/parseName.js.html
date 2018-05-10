@@ -50,10 +50,10 @@
   parse
 } <span class="hljs-keyword">from</span> <span class="hljs-string">'path'</span>
 
-<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">parseName</span> (<span class="hljs-params">{ meta, logger }</span>) </span>{
-  <span class="hljs-keyword">const</span> log = logger(<span class="hljs-string">'parseName'</span>)
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">parseName</span> (<span class="hljs-params">{ meta, getLog }</span>) </span>{
+  <span class="hljs-keyword">const</span> { debug } = getLog(<span class="hljs-string">'parseName'</span>)
   <span class="hljs-keyword">if</span> (meta.imdbId) {
-    log(<span class="hljs-string">'have imdb id, no need to parse name'</span>)
+    debug(<span class="hljs-string">'have imdb id, no need to parse name'</span>)
     <span class="hljs-keyword">return</span>
   }
   <span class="hljs-keyword">let</span> name = parse(meta.srcRootDir).base
@@ -63,7 +63,7 @@
   <span class="hljs-keyword">if</span> (seasonEpisode) {
     name = name.slice(<span class="hljs-number">0</span>, seasonEpisode.index - <span class="hljs-number">1</span>)
     meta.parsedName = {
-      <span class="hljs-attr">type</span>: <span class="hljs-string">'tv'</span>,
+      <span class="hljs-attr">mediaClass</span>: <span class="hljs-string">'tv'</span>,
       name,
       <span class="hljs-attr">season</span>: seasonEpisode[<span class="hljs-number">1</span>],
       <span class="hljs-attr">episode</span>: seasonEpisode[<span class="hljs-number">2</span>]
@@ -74,7 +74,7 @@
   <span class="hljs-keyword">if</span> (year) {
     name = name.slice(<span class="hljs-number">0</span>, year.index - <span class="hljs-number">1</span>)
     meta.parsedName = {
-      <span class="hljs-attr">type</span>: <span class="hljs-string">'movie'</span>,
+      <span class="hljs-attr">mediaClass</span>: <span class="hljs-string">'movie'</span>,
       name,
       <span class="hljs-attr">year</span>: year[<span class="hljs-number">0</span>]
     }

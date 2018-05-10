@@ -50,17 +50,17 @@
   readFile
 } <span class="hljs-keyword">from</span> <span class="hljs-string">'mz/fs'</span>
 
-<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readNfo</span> (<span class="hljs-params">{ meta, logger }</span>) </span>{
-  <span class="hljs-keyword">const</span> log = logger(<span class="hljs-string">'readNfo'</span>)
-  <span class="hljs-keyword">const</span> nfo = meta.files.find(<span class="hljs-function">(<span class="hljs-params">file</span>) =&gt;</span> file.type === <span class="hljs-string">'nfo'</span>)
-  <span class="hljs-keyword">if</span> (!nfo) <span class="hljs-keyword">return</span> log(<span class="hljs-string">'no nfo file'</span>)
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readNfo</span> (<span class="hljs-params">{ meta, getLog }</span>) </span>{
+  <span class="hljs-keyword">const</span> { debug } = getLog(<span class="hljs-string">'readNfo'</span>)
+  <span class="hljs-keyword">const</span> nfo = meta.files.find(<span class="hljs-function">(<span class="hljs-params">file</span>) =&gt;</span> file.role === <span class="hljs-string">'nfo'</span>)
+  <span class="hljs-keyword">if</span> (!nfo) <span class="hljs-keyword">return</span> debug(<span class="hljs-string">'no nfo file'</span>)
   meta.nfoContent = <span class="hljs-keyword">await</span> readFile(nfo.path, <span class="hljs-string">'utf8'</span>).catch(<span class="hljs-function"><span class="hljs-params">e</span> =&gt;</span> { <span class="hljs-keyword">throw</span> e })
   <span class="hljs-keyword">const</span> matches = meta.nfoContent.match(<span class="hljs-regexp">/tt\d{7}/</span>)
   <span class="hljs-keyword">if</span> (matches) {
     meta.imdbId = matches[<span class="hljs-number">0</span>]
-    log(<span class="hljs-string">`got imdbId: <span class="hljs-subst">${meta.imdbId}</span>`</span>)
+    debug(<span class="hljs-string">`got imdbId: <span class="hljs-subst">${meta.imdbId}</span>`</span>)
   } <span class="hljs-keyword">else</span> {
-    log(<span class="hljs-string">'no imdbId in nfo'</span>)
+    debug(<span class="hljs-string">'no imdbId in nfo'</span>)
   }
 }
 

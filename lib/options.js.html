@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>options.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="../doc-style.css" />
+  <script src="../doc-filelist.js"></script>
+  <script>
+    var relativeDir = "../";
+    var thisFile = "lib/options.js";
+    var defaultSidebar = true;
+  </script>
+  <script src="../doc-script.js"></script>
+
+</head>
+<body>
+  <div id="sidebar_wrapper">
+    <div id="sidebar_switch">
+      <span class="tree">Files</span>
+      <span class="headings">Headings</span>
+    </div>
+    <div id="tree"></div>
+    <div id="headings">
+
+    </div>
+  </div>
+  <div id="sidebar-toggle"></div>
+  <div id="container">
+    <div class="background highlight"></div>
+<table cellpadding="0" cellspacing="0">
+  <tbody>
+    
+      <tr>
+        <td class="docs">
+          <h1>options.js</h1>
+        </td>
+        <td class="code highlight"></td>
+      </tr>
+    
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1"></a>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">import</span> hjson <span class="hljs-keyword">from</span> <span class="hljs-string">'hjson'</span>
+<span class="hljs-keyword">import</span> commandLineArgs <span class="hljs-keyword">from</span> <span class="hljs-string">'command-line-args'</span>
+<span class="hljs-keyword">import</span> commandLineUsage <span class="hljs-keyword">from</span> <span class="hljs-string">'command-line-usage'</span>
+<span class="hljs-keyword">import</span> {
+  readFile
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'mz/fs'</span>
+
+<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">options</span> (<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">let</span> opt
+  <span class="hljs-keyword">try</span> {
+    opt = hjson.parse(<span class="hljs-keyword">await</span> readFile(<span class="hljs-string">'./config.hjson'</span>, <span class="hljs-string">'utf8'</span>))
+  } <span class="hljs-keyword">catch</span> (e) {
+    <span class="hljs-keyword">if</span> (e.code !== <span class="hljs-string">'ENOENT'</span>) <span class="hljs-keyword">throw</span> e
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`You don't seem to have a config file.`</span>)
+    <span class="hljs-keyword">return</span>
+  }
+
+  <span class="hljs-keyword">if</span> ([<span class="hljs-string">'once'</span>, <span class="hljs-string">'watch'</span>, <span class="hljs-string">'dir'</span>].includes(process.argv[<span class="hljs-number">2</span>])) {
+    opt.command = process.argv[<span class="hljs-number">2</span>]
+  } <span class="hljs-keyword">else</span> {
+    opt.command = <span class="hljs-string">'usage'</span>
+  }
+  <span class="hljs-keyword">let</span> args = commandLineArgs(
+    [
+      { <span class="hljs-attr">name</span>: <span class="hljs-string">'force'</span>, <span class="hljs-attr">alias</span>: <span class="hljs-string">'f'</span>, <span class="hljs-attr">type</span>: <span class="hljs-built_in">Boolean</span> },
+      { <span class="hljs-attr">name</span>: <span class="hljs-string">'release'</span>, <span class="hljs-attr">alias</span>: <span class="hljs-string">'r'</span>, <span class="hljs-attr">type</span>: <span class="hljs-built_in">String</span> },
+      { <span class="hljs-attr">name</span>: <span class="hljs-string">'path'</span>, <span class="hljs-attr">alias</span>: <span class="hljs-string">'p'</span>, <span class="hljs-attr">type</span>: <span class="hljs-built_in">String</span> },
+      { <span class="hljs-attr">name</span>: <span class="hljs-string">'log-level'</span>, <span class="hljs-attr">alias</span>: <span class="hljs-string">'l'</span>, <span class="hljs-attr">type</span>: <span class="hljs-built_in">String</span> }
+    ],
+    {
+      <span class="hljs-attr">argv</span>: process.argv.slice(<span class="hljs-number">3</span>) || []
+    }
+  )
+  <span class="hljs-keyword">if</span> (args[<span class="hljs-string">'path'</span>]) opt.path = args.path
+  <span class="hljs-keyword">if</span> (args[<span class="hljs-string">'release'</span>]) opt.release = args.release
+  <span class="hljs-keyword">if</span> (args[<span class="hljs-string">'force'</span>]) opt.force = args.force
+  <span class="hljs-keyword">if</span> (args[<span class="hljs-string">'log-level'</span>]) opt.logLevel = args[<span class="hljs-string">'log-level'</span>]
+
+  <span class="hljs-keyword">if</span> ([<span class="hljs-string">'dir'</span>, <span class="hljs-string">'log'</span>].includes(opt.command) &amp;&amp; !opt.release) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'--release option is required for dir or log commands'</span>)
+  }
+
+  <span class="hljs-keyword">if</span> (!opt.poll &amp;&amp; !opt.watch) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'if "watch" is false, "poll" must be &gt; 0'</span>)
+  }
+
+  <span class="hljs-keyword">return</span> opt
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">usage</span> (<span class="hljs-params"></span>) </span>{
+  <span class="hljs-built_in">console</span>.log(commandLineUsage([
+    {
+      <span class="hljs-attr">header</span>: <span class="hljs-string">'undiscombobulate'</span>,
+      <span class="hljs-attr">content</span>: <span class="hljs-string">'Extensible post processing for movies &amp; tv'</span>
+    },
+    {
+      <span class="hljs-attr">header</span>: <span class="hljs-string">'Synopsis'</span>,
+      <span class="hljs-attr">content</span>: <span class="hljs-string">'$ undisco &lt;command&gt; &lt;options&gt;'</span>
+    },
+    {
+      <span class="hljs-attr">header</span>: <span class="hljs-string">'Commands'</span>,
+      <span class="hljs-attr">content</span>: [
+        { <span class="hljs-attr">name</span>: <span class="hljs-string">'watch'</span>, <span class="hljs-attr">summary</span>: <span class="hljs-string">'Monitor for changes.'</span> },
+        { <span class="hljs-attr">name</span>: <span class="hljs-string">'once'</span>, <span class="hljs-attr">summary</span>: <span class="hljs-string">'Iterate over folders once.'</span> },
+        { <span class="hljs-attr">name</span>: <span class="hljs-string">'dir'</span>, <span class="hljs-attr">summary</span>: <span class="hljs-string">'Process specific directory. (see examples)'</span> }
+      ]
+    },
+    {
+      <span class="hljs-attr">header</span>: <span class="hljs-string">'Parameters'</span>,
+      <span class="hljs-attr">content</span>: [
+        {
+          <span class="hljs-attr">name</span>: <span class="hljs-string">'-f, --force'</span>,
+          <span class="hljs-attr">summary</span>: <span class="hljs-string">'force processing &amp; copy even if completed previously'</span>
+        },
+        {
+          <span class="hljs-attr">name</span>: <span class="hljs-string">'-p, --path'</span>,
+          <span class="hljs-attr">summary</span>: <span class="hljs-string">'specify root dir for once / watch modes'</span>
+        },
+        {
+          <span class="hljs-attr">name</span>: <span class="hljs-string">'-r, --release'</span>,
+          <span class="hljs-attr">summary</span>: <span class="hljs-string">'specify partial dir name for dir / log modes'</span>
+        },
+        {
+          <span class="hljs-attr">name</span>: <span class="hljs-string">'-l, --log-level'</span>,
+          <span class="hljs-attr">summary</span>: <span class="hljs-string">'specify log level, either info or debug'</span>
+        }
+      ]
+    },
+    {
+      <span class="hljs-attr">header</span>: <span class="hljs-string">'Examples'</span>,
+      <span class="hljs-attr">content</span>: [
+        {
+          <span class="hljs-attr">name</span>: <span class="hljs-string">'./undisco-linux-x64 once -p /srv/downloads'</span>,
+          <span class="hljs-attr">summary</span>: <span class="hljs-string">'basic usage for binary'</span>
+        },
+        {
+          <span class="hljs-attr">name</span>: <span class="hljs-string">'npm start -- once -p /srv/downloads'</span>,
+          <span class="hljs-attr">summary</span>: <span class="hljs-string">'basic usage for source'</span>
+        },
+        {
+          <span class="hljs-attr">name</span>: <span class="hljs-string">'npm start -- dir -r fringe'</span>,
+          <span class="hljs-attr">summary</span>: <span class="hljs-string">'process first directory containing "fringe"'</span>
+        }
+      ]
+    }
+  ]))
+}
+
+<span class="hljs-keyword">export</span> { options, usage }
+
+</pre>
+        </td>
+      </tr>
+    
+  </tbody>
+</table>
+
+  </div>
+</body>
+</html>

@@ -53,16 +53,25 @@
   createWriteStream
 } <span class="hljs-keyword">from</span> <span class="hljs-string">'fs'</span>
 <span class="hljs-keyword">import</span> {
+  stat
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'mz/fs'</span>
+<span class="hljs-keyword">import</span> {
   parse
 } <span class="hljs-keyword">from</span> <span class="hljs-string">'path'</span>
 <span class="hljs-keyword">import</span> {
   mkdirpSync
 } <span class="hljs-keyword">from</span> <span class="hljs-string">'fs-extra'</span>
 
-<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">copy</span> (<span class="hljs-params">{ meta, logger }</span>) </span>{
-  <span class="hljs-keyword">const</span> log = logger(<span class="hljs-string">'copy'</span>)
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">copy</span> (<span class="hljs-params">{ meta, getLog, opt }</span>) </span>{
+  <span class="hljs-keyword">const</span> { info } = getLog(<span class="hljs-string">'copy'</span>)
   <span class="hljs-keyword">const</span> workers = meta.files.filter(<span class="hljs-function">(<span class="hljs-params">f</span>) =&gt;</span> f.destPath).map(<span class="hljs-function">(<span class="hljs-params">file</span>) =&gt;</span> {
-    <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Promise</span>(<span class="hljs-function">(<span class="hljs-params">resolve, reject</span>) =&gt;</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Promise</span>(<span class="hljs-keyword">async</span> (resolve, reject) =&gt; {
+      <span class="hljs-keyword">const</span> exists = <span class="hljs-keyword">await</span> stat(file.destPath)
+        .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> <span class="hljs-literal">false</span>)
+      <span class="hljs-keyword">if</span> (exists &amp;&amp; !opt.force) {
+        info(<span class="hljs-string">`file already exists: <span class="hljs-subst">${file.destPath}</span>`</span>)
+        <span class="hljs-keyword">return</span> resolve()
+      }
       <span class="hljs-keyword">const</span> input = createReadStream(file.path)
       <span class="hljs-keyword">const</span> destPath = parse(file.destPath)
       mkdirpSync(destPath.dir)
@@ -78,7 +87,7 @@
       })
       output.on(<span class="hljs-string">'close'</span>, () =&gt; {
         bar.hide()
-        log(<span class="hljs-string">`copied <span class="hljs-subst">${destPath.base}</span>`</span>)
+        info(<span class="hljs-string">`copied <span class="hljs-subst">${destPath.base}</span>`</span>)
         resolve()
       })
       input

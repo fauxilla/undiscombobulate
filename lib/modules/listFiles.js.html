@@ -46,45 +46,85 @@
 
         </td>
         <td class="code highlight">
-          <pre class="javascript"><span class="hljs-keyword">import</span> readDir <span class="hljs-keyword">from</span> <span class="hljs-string">'../readDir'</span>
+          <pre class="javascript"><span class="hljs-keyword">import</span> {
+  readdir,
+  stat
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'mz/fs'</span>
+<span class="hljs-keyword">import</span> {
+  join
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'path'</span>
 
-<span class="hljs-keyword">const</span> defaults = {
-  <span class="hljs-attr">retryAfter</span>: <span class="hljs-number">1</span>,
-  <span class="hljs-attr">types</span>: {
-    <span class="hljs-attr">sample</span>: [
-      <span class="hljs-string">'*sample*'</span>
-    ],
-    <span class="hljs-attr">archive</span>: [
-      <span class="hljs-string">'*.rar'</span>
-    ],
-    <span class="hljs-attr">feature</span>: [
-      <span class="hljs-string">'*.avi'</span>,
-      <span class="hljs-string">'*.mkv'</span>,
-      <span class="hljs-string">'*.wmv'</span>,
-      <span class="hljs-string">'*.mp4'</span>,
-      <span class="hljs-string">'!*sample*'</span>
-    ],
-    <span class="hljs-attr">subtitles</span>: [
-      <span class="hljs-string">'*.sub'</span>,
-      <span class="hljs-string">'*.srt'</span>,
-      <span class="hljs-string">'*.sbv'</span>,
-      <span class="hljs-string">'*.sfv'</span>
-    ],
-    <span class="hljs-attr">nfo</span>: [
-      <span class="hljs-string">'*.nfo'</span>
-    ],
-    <span class="hljs-attr">dump</span>: [
-      <span class="hljs-string">'undisco.dump'</span>
-    ]
-  }
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">listFiles</span> (<span class="hljs-params">{ meta, addFiles, getLog }</span>) </span>{
+  <span class="hljs-keyword">const</span> { info, debug } = getLog(<span class="hljs-string">'listFiles'</span>)
+  debug(meta.srcRootDir)
+  <span class="hljs-keyword">const</span> files = <span class="hljs-keyword">await</span> getDir(meta.srcRootDir)
+  info(<span class="hljs-string">`got <span class="hljs-subst">${files.length}</span> files from <span class="hljs-subst">${meta.srcRootDir}</span>`</span>)
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-2" id="section-2"></a>
+</div>
+<p>addFiles usually stats &amp; parses, but in this case will have the stats
+already, so it will merely parse paths and push to the <code>meta.files</code>
+structure</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">  <span class="hljs-keyword">await</span> addFiles(files)
 }
 
-<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">listFiles</span> (<span class="hljs-params">{ meta, logger, opt }</span>) </span>{
-  opt = <span class="hljs-built_in">Object</span>.assign(defaults, opt)
-  meta.files = <span class="hljs-keyword">await</span> readDir(
-    meta.srcRootDir,
-    { <span class="hljs-attr">dirs</span>: <span class="hljs-literal">false</span>, <span class="hljs-attr">types</span>: opt.types }
-  )
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-3" id="section-3"></a>
+</div>
+<div class="dox">
+<div class="summary">
+<p>recursive read files, returns full paths from root calls itself on subdirs
+better to implement a specific getDir fn here, rather than having a
+one-fits-all approach with too many options.</p>
+</div>
+<div class="body">
+</div>
+<div class="details">
+<div class="dox_tag_title">Params</div>
+<div class="dox_tag_detail">
+<span class="dox_tag_name">path</span>
+<span class="dox_type">String</span>
+<span>root dir
+</span>
+</div>
+<div class="dox_tag_title">Returns</div>
+<div class="dox_tag_detail">
+<span class="dox_tag_name"></span>
+<span class="dox_type">Array</span>
+<span>array of stats with path
+</span>
+</div>
+</div>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getDir</span> (<span class="hljs-params">path</span>) </span>{
+  <span class="hljs-keyword">let</span> files = []
+  <span class="hljs-keyword">let</span> nodes = <span class="hljs-keyword">await</span> readdir(path)
+  nodes = nodes.map(<span class="hljs-function">(<span class="hljs-params">node</span>) =&gt;</span> join(path, node))
+  <span class="hljs-keyword">while</span> (nodes.length) {
+    <span class="hljs-keyword">const</span> node = nodes.shift()
+    <span class="hljs-keyword">const</span> stats = <span class="hljs-keyword">await</span> stat(node)
+    <span class="hljs-keyword">if</span> (stats.isDirectory()) files = files.concat(<span class="hljs-keyword">await</span> getDir(node))
+    <span class="hljs-keyword">else</span> files.push(<span class="hljs-built_in">Object</span>.assign({}, stats, { <span class="hljs-attr">path</span>: node }))
+  }
+  <span class="hljs-keyword">return</span> files
 }
 
 </pre>

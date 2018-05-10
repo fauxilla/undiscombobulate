@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>pushbullet.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="../../doc-style.css" />
+  <script src="../../doc-filelist.js"></script>
+  <script>
+    var relativeDir = "../../";
+    var thisFile = "lib/modules/pushbullet.js";
+    var defaultSidebar = true;
+  </script>
+  <script src="../../doc-script.js"></script>
+
+</head>
+<body>
+  <div id="sidebar_wrapper">
+    <div id="sidebar_switch">
+      <span class="tree">Files</span>
+      <span class="headings">Headings</span>
+    </div>
+    <div id="tree"></div>
+    <div id="headings">
+
+    </div>
+  </div>
+  <div id="sidebar-toggle"></div>
+  <div id="container">
+    <div class="background highlight"></div>
+<table cellpadding="0" cellspacing="0">
+  <tbody>
+    
+      <tr>
+        <td class="docs">
+          <h1>pushbullet.js</h1>
+        </td>
+        <td class="code highlight"></td>
+      </tr>
+    
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1"></a>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">import</span> {
+  createClient,
+  Client
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'flashheart'</span>
+<span class="hljs-keyword">import</span> {
+  promisify
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'util'</span>
+<span class="hljs-keyword">import</span> format <span class="hljs-keyword">from</span> <span class="hljs-string">'string-template'</span>
+
+<span class="hljs-keyword">const</span> client = createClient()
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-2" id="section-2"></a>
+</div>
+<p>async function get(url, options) {
+return new Promise((resolve, reject) =&gt; {
+client.get(url, options, () =&gt; {</p>
+<pre><code>})
+</code></pre>
+<p>})
+})</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">client.get = promisify(Client.prototype.get)
+client.post = promisify(Client.prototype.post)
+
+<span class="hljs-keyword">const</span> defaults = {
+  <span class="hljs-attr">pushbullet</span>: {
+    <span class="hljs-attr">accessToken</span>: <span class="hljs-literal">false</span>
+  }
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">pushbullet</span> (<span class="hljs-params">{ meta, getLog, opt }</span>) </span>{
+  opt = <span class="hljs-built_in">Object</span>.assign(defaults, opt.notifications)
+  <span class="hljs-keyword">const</span> { error, debug } = getLog(<span class="hljs-string">'pushbullet'</span>)
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-3" id="section-3"></a>
+</div>
+<p>fail silently</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">  <span class="hljs-keyword">if</span> (!opt.pushbullet.accessToken) <span class="hljs-keyword">return</span>
+  <span class="hljs-keyword">let</span> body
+  <span class="hljs-keyword">if</span> (
+    (meta.parsedName.mediaClass === <span class="hljs-string">'tv'</span>) &amp;&amp;
+    (meta.parsedName.episode !== <span class="hljs-string">'multi'</span>)
+  ) {
+    body = format(<span class="hljs-string">'Got Episode: {title} S{SS}E{EE}'</span>, meta.placeholders)
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (meta.parsedName.mediaClass === <span class="hljs-string">'tv'</span>) {
+    body = format(<span class="hljs-string">'Got Season: {title} Season {S}'</span>, meta.placeholders)
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (meta.parsedName.mediaClass === <span class="hljs-string">'movie'</span>) {
+    body = format(<span class="hljs-string">'Got Movie: {title} ({year})'</span>, meta.placeholders)
+  } <span class="hljs-keyword">else</span> {
+    error(meta)
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'couldnt determine mediaClass'</span>)
+  }
+
+  <span class="hljs-keyword">const</span> endpoint = <span class="hljs-string">'https://api.pushbullet.com/v2/pushes'</span>
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">await</span> client.post(
+      endpoint,
+      {
+        <span class="hljs-attr">title</span>: <span class="hljs-string">'undiscombobulate'</span>,
+        body,
+        <span class="hljs-attr">type</span>: <span class="hljs-string">'note'</span>
+      },
+      {
+        <span class="hljs-attr">headers</span>: {
+          <span class="hljs-string">'Access-Token'</span>: opt.pushbullet.accessToken
+        },
+        <span class="hljs-attr">json</span>: <span class="hljs-literal">true</span>
+      }
+    )
+  } <span class="hljs-keyword">catch</span> (e) {
+    error(<span class="hljs-built_in">Object</span>.keys(e))
+    error(e.body)
+    error(e.headers)
+    <span class="hljs-keyword">throw</span> e
+  }
+  debug(<span class="hljs-string">'sent pushbullet notification'</span>)
+}
+
+</pre>
+        </td>
+      </tr>
+    
+  </tbody>
+</table>
+
+  </div>
+</body>
+</html>

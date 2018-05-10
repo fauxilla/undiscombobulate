@@ -50,18 +50,45 @@
   join
 } <span class="hljs-keyword">from</span> <span class="hljs-string">'path'</span>
 <span class="hljs-keyword">const</span> standardModules = [
+  <span class="hljs-string">'done'</span>,
   <span class="hljs-string">'listFiles'</span>,
   <span class="hljs-string">'skip'</span>,
   <span class="hljs-string">'unrar'</span>,
   <span class="hljs-string">'readNfo'</span>,
-  <span class="hljs-string">'parseName'</span>,
+  <span class="hljs-string">'parseFileNames'</span>,
   <span class="hljs-string">'tmdb'</span>,
-  <span class="hljs-string">'placeholders'</span>,
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-2" id="section-2"></a>
+</div>
+<p>'subs',</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">  <span class="hljs-string">'placeholders'</span>,
   <span class="hljs-string">'ignore'</span>,
   <span class="hljs-string">'destPaths'</span>,
   <span class="hljs-string">'copy'</span>,
   <span class="hljs-string">'clean'</span>
-]
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-3" id="section-3"></a>
+</div>
+<p>'pushbullet'</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">]
 
 <span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getModules</span> (<span class="hljs-params">opt</span>) </span>{
   <span class="hljs-keyword">const</span> modules = opt.modules || standardModules

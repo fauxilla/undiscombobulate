@@ -49,20 +49,21 @@
           <pre class="javascript"><span class="hljs-meta">#!/usr/bin/env node</span>
 <span class="hljs-keyword">import</span> <span class="hljs-string">'babel-polyfill'</span>
 <span class="hljs-keyword">import</span> Undisco <span class="hljs-keyword">from</span> <span class="hljs-string">'./Undisco'</span>
-<span class="hljs-keyword">import</span> readDir <span class="hljs-keyword">from</span> <span class="hljs-string">'./readDir'</span>
-<span class="hljs-keyword">import</span> hjson <span class="hljs-keyword">from</span> <span class="hljs-string">'hjson'</span>
+<span class="hljs-keyword">import</span> listDirs <span class="hljs-keyword">from</span> <span class="hljs-string">'./listDirs'</span>
 <span class="hljs-keyword">import</span> fontAscii <span class="hljs-keyword">from</span> <span class="hljs-string">'font-ascii'</span>
-<span class="hljs-keyword">import</span> {
-  readFile
-} <span class="hljs-keyword">from</span> <span class="hljs-string">'mz/fs'</span>
 <span class="hljs-keyword">import</span> {
   watch
 } <span class="hljs-keyword">from</span> <span class="hljs-string">'chokidar'</span>
-
-<span class="hljs-keyword">import</span> debug <span class="hljs-keyword">from</span> <span class="hljs-string">'debug'</span>
-<span class="hljs-keyword">import</span> commandLineArgs <span class="hljs-keyword">from</span> <span class="hljs-string">'command-line-args'</span>
-
-<span class="hljs-keyword">const</span> dbg = debug(<span class="hljs-string">'undisco'</span>)
+<span class="hljs-keyword">import</span> {
+  options,
+  usage
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'./options'</span>
+<span class="hljs-keyword">import</span> {
+  parse
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'path'</span>
+<span class="hljs-keyword">import</span> {
+  log
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'./log'</span>
 
 </pre>
         </td>
@@ -100,23 +101,45 @@
         </td>
         <td class="code highlight">
           <pre class="javascript"><span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">undisco</span> (<span class="hljs-params">opt</span>) </span>{
-  <span class="hljs-keyword">if</span> (opt.once) {
-    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`run once on <span class="hljs-subst">${opt.downloadsPath}</span>`</span>)
-    <span class="hljs-keyword">let</span> dirs
-    <span class="hljs-keyword">try</span> {
-      dirs = <span class="hljs-keyword">await</span> readDir(opt.downloadsPath, { <span class="hljs-attr">files</span>: <span class="hljs-literal">false</span> })
-    } <span class="hljs-keyword">catch</span> (e) {
-      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">`bad path: <span class="hljs-subst">${opt.downloadsPath}</span>`</span>)
-    }
-    dbg(<span class="hljs-string">`<span class="hljs-subst">${dirs.length}</span> entries in <span class="hljs-subst">${opt.downloadsPath}</span>`</span>)
-    <span class="hljs-keyword">const</span> dump = []
-    <span class="hljs-keyword">const</span> workers = dirs.map(<span class="hljs-function">(<span class="hljs-params">dir</span>) =&gt;</span> <span class="hljs-keyword">new</span> Undisco(dir.path, opt))
-    <span class="hljs-keyword">while</span> (workers.length) {
-      dump.push(<span class="hljs-keyword">await</span> workers.shift().run())
-    }
-    <span class="hljs-keyword">return</span> dump
+  log.level(opt.logLevel)
+  <span class="hljs-keyword">const</span> commands = {
+    <span class="hljs-attr">watch</span>: runWatch,
+    <span class="hljs-attr">once</span>: runOnce,
+    <span class="hljs-attr">dir</span>: runDir,
+    <span class="hljs-attr">usage</span>: runUsage
   }
-  <span class="hljs-keyword">if</span> (watch || opt.poll) {
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> commands[opt.command](opt)
+}
+
+<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">runOnce</span> (<span class="hljs-params">opt</span>) </span>{
+  log.info(<span class="hljs-string">`run once on <span class="hljs-subst">${opt.path}</span>`</span>)
+  <span class="hljs-keyword">const</span> dirs = <span class="hljs-keyword">await</span> listDirs(opt.path, opt.depth)
+  log.debug(<span class="hljs-string">`<span class="hljs-subst">${dirs.length}</span> entries in <span class="hljs-subst">${opt.path}</span>`</span>)
+  <span class="hljs-keyword">const</span> workers = dirs.map(<span class="hljs-function">(<span class="hljs-params">dir</span>) =&gt;</span> <span class="hljs-keyword">new</span> Undisco(dir, opt))
+  <span class="hljs-keyword">const</span> dump = []
+  <span class="hljs-keyword">while</span> (workers.length) dump.push(<span class="hljs-keyword">await</span> workers.shift().run())
+  <span class="hljs-keyword">return</span> dump
+}
+
+<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">runWatch</span> (<span class="hljs-params">opt</span>) </span>{
+  <span class="hljs-keyword">if</span> (opt.watch) log.info(<span class="hljs-string">`watching <span class="hljs-subst">${opt.path}</span>`</span>)
+  <span class="hljs-keyword">else</span> log.info(<span class="hljs-string">`polling <span class="hljs-subst">${opt.path}</span> every <span class="hljs-subst">${opt.poll}</span> minutes.`</span>)
+
+  <span class="hljs-keyword">const</span> timeouts = {}
+
+  watch(
+    opt.path,
+    {
+      <span class="hljs-attr">persistent</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">usePolling</span>: !opt.watch,
+      <span class="hljs-attr">interval</span>: opt.poll * <span class="hljs-number">60</span> * <span class="hljs-number">1000</span>,
+      <span class="hljs-attr">binaryInterval</span>: opt.poll * <span class="hljs-number">60</span> * <span class="hljs-number">1000</span>,
+      <span class="hljs-attr">ignoreInitial</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">depth</span>: opt.depth
+    }
+  )
+  .on(<span class="hljs-string">'change'</span>, (path, stat) =&gt; {
+    <span class="hljs-keyword">const</span> dir = parse(path).dir
 </pre>
         </td>
       </tr>
@@ -126,32 +149,33 @@
           <div class="pilwrap">
   <a class="pilcrow" href="#section-3" id="section-3"></a>
 </div>
-<p>watch <code>downloadsPath</code></p>
+<p>debounce changeHandler</p>
 
         </td>
         <td class="code highlight">
-          <pre class="javascript">    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`watching <span class="hljs-subst">${opt.downloadsPath}</span>`</span>)
-    watch(
-      opt.downloadsPath,
-      <span class="hljs-built_in">Object</span>.assign(
-        {
-          <span class="hljs-attr">depth</span>: <span class="hljs-number">0</span>,
-          <span class="hljs-attr">usePolling</span>: <span class="hljs-built_in">Boolean</span>(opt.poll),
-          <span class="hljs-attr">awaitWriteFinish</span>: {
-            <span class="hljs-attr">stabilityThreshold</span>: <span class="hljs-number">10000</span>,
-            <span class="hljs-attr">pollInterval</span>: <span class="hljs-number">10000</span>
-          }
-        },
-        opt.poll ? {
-          <span class="hljs-attr">interval</span>: opt.poll * <span class="hljs-number">60</span> * <span class="hljs-number">1000</span>,
-          <span class="hljs-attr">binaryInterval</span>: opt.poll * <span class="hljs-number">60</span> * <span class="hljs-number">1000</span>
-        } : {}
-      )
-    ).on(<span class="hljs-string">'addDir'</span>, (file) =&gt; {
-      dbg(<span class="hljs-string">'detected change'</span>, file)
-      queue({ <span class="hljs-attr">path</span>: file }, opt)
-    })
+          <pre class="javascript">    <span class="hljs-keyword">if</span> (timeouts[dir]) clearTimeout(timeouts[dir])
+    timeouts[dir] = setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> changeHandler(dir, stat), <span class="hljs-number">5000</span>)
+  })
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">changeHandler</span> (<span class="hljs-params">dir, stat</span>) </span>{
+    <span class="hljs-keyword">delete</span> timeouts[dir]
+    <span class="hljs-keyword">if</span> (stat.isDirectory()) <span class="hljs-keyword">return</span>
+    log.debug(<span class="hljs-string">`detected change: <span class="hljs-subst">${dir}</span>`</span>)
+    queue({ <span class="hljs-attr">path</span>: dir }, opt)
   }
+}
+
+<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">runDir</span> (<span class="hljs-params">opt</span>) </span>{
+  log.info(<span class="hljs-string">`run on dir containing: <span class="hljs-subst">${opt.release}</span>`</span>)
+  <span class="hljs-keyword">const</span> dirs = <span class="hljs-keyword">await</span> listDirs(opt.path, opt.depth)
+  <span class="hljs-keyword">const</span> re = <span class="hljs-keyword">new</span> <span class="hljs-built_in">RegExp</span>(opt.release, <span class="hljs-string">'i'</span>)
+  <span class="hljs-keyword">const</span> path = dirs.find(<span class="hljs-function">(<span class="hljs-params">dir</span>) =&gt;</span> re.test(dir))
+  <span class="hljs-keyword">const</span> worker = <span class="hljs-keyword">new</span> Undisco(path, opt)
+  <span class="hljs-keyword">await</span> worker.run()
+}
+
+<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">runUsage</span> (<span class="hljs-params">opt</span>) </span>{
+  usage()
 }
 
 </pre>
@@ -246,10 +270,7 @@
   workers.push(...dirs.map(<span class="hljs-function">(<span class="hljs-params">dir</span>) =&gt;</span> <span class="hljs-keyword">new</span> Undisco(dir.path, opt)))
   <span class="hljs-keyword">if</span> (working) <span class="hljs-keyword">return</span>
   working = <span class="hljs-literal">true</span>
-  dbg(<span class="hljs-string">'start work'</span>)
   <span class="hljs-keyword">while</span> (workers.length) {
-    dbg(<span class="hljs-string">'worker iterate'</span>)
-
     <span class="hljs-keyword">await</span> workers.shift().run()
   }
   working = <span class="hljs-literal">false</span>
@@ -270,39 +291,11 @@
         <td class="code highlight">
           <pre class="javascript"><span class="hljs-keyword">if</span> (!<span class="hljs-built_in">module</span>.parent) {
   (<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
-    <span class="hljs-keyword">let</span> opt
     fontAscii(<span class="hljs-string">'undisco'</span>, { <span class="hljs-attr">typeface</span>: <span class="hljs-string">'SmallSlant'</span>, <span class="hljs-attr">color</span>: <span class="hljs-string">'blue'</span> })
     <span class="hljs-keyword">try</span> {
-      opt = hjson.parse(<span class="hljs-keyword">await</span> readFile(<span class="hljs-string">'./config.hjson'</span>, <span class="hljs-string">'utf8'</span>))
-    } <span class="hljs-keyword">catch</span> (e) {
-      <span class="hljs-keyword">if</span> (e.code !== <span class="hljs-string">'ENOENT'</span>) <span class="hljs-keyword">throw</span> e
-      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`You don't seem to have a config file.`</span>)
-      <span class="hljs-keyword">return</span>
-    }
-</pre>
-        </td>
-      </tr>
-    
-      <tr>
-        <td class="docs">
-          <div class="pilwrap">
-  <a class="pilcrow" href="#section-8" id="section-8"></a>
-</div>
-<p>rudimentary flags, only for things that help with testing</p>
-
-        </td>
-        <td class="code highlight">
-          <pre class="javascript">    <span class="hljs-keyword">let</span> args = commandLineArgs([
-      { <span class="hljs-attr">name</span>: <span class="hljs-string">'once'</span>, <span class="hljs-attr">alias</span>: <span class="hljs-string">'o'</span>, <span class="hljs-attr">type</span>: <span class="hljs-built_in">Boolean</span> },
-      { <span class="hljs-attr">name</span>: <span class="hljs-string">'no-dump'</span>, <span class="hljs-attr">alias</span>: <span class="hljs-string">'n'</span>, <span class="hljs-attr">type</span>: <span class="hljs-built_in">Boolean</span> }
-    ])
-    <span class="hljs-keyword">if</span> (args.once) opt.once = <span class="hljs-literal">true</span>
-    <span class="hljs-keyword">if</span> (args[<span class="hljs-string">'no-dump'</span>]) opt.dump = { <span class="hljs-attr">writeDump</span>: <span class="hljs-literal">false</span> }
-    <span class="hljs-keyword">try</span> {
-      undisco(opt)
-    } <span class="hljs-keyword">catch</span> (e) {
-      <span class="hljs-built_in">console</span>.log(e.message)
-      dbg(e)
+      undisco(<span class="hljs-keyword">await</span> options())
+    } <span class="hljs-keyword">catch</span> (err) {
+      log.error({<span class="hljs-attr">meta</span>: err}, err.message)
     }
   })()
 }

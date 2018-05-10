@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>parseFileNames.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="../../doc-style.css" />
+  <script src="../../doc-filelist.js"></script>
+  <script>
+    var relativeDir = "../../";
+    var thisFile = "lib/modules/parseFileNames.js";
+    var defaultSidebar = true;
+  </script>
+  <script src="../../doc-script.js"></script>
+
+</head>
+<body>
+  <div id="sidebar_wrapper">
+    <div id="sidebar_switch">
+      <span class="tree">Files</span>
+      <span class="headings">Headings</span>
+    </div>
+    <div id="tree"></div>
+    <div id="headings">
+
+    </div>
+  </div>
+  <div id="sidebar-toggle"></div>
+  <div id="container">
+    <div class="background highlight"></div>
+<table cellpadding="0" cellspacing="0">
+  <tbody>
+    
+      <tr>
+        <td class="docs">
+          <h1>parseFileNames.js</h1>
+        </td>
+        <td class="code highlight"></td>
+      </tr>
+    
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1"></a>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">parseFileNames</span> (<span class="hljs-params">{ meta, getLog }</span>) </span>{
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-2" id="section-2"></a>
+</div>
+<p>eslint-disable-next-line no-unused-vars</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">  <span class="hljs-keyword">const</span> { debug } = getLog(<span class="hljs-string">'parseFileNames'</span>)
+
+  meta.files.forEach(<span class="hljs-function">(<span class="hljs-params">file</span>) =&gt;</span> {
+    <span class="hljs-keyword">let</span> name = file.base
+      .replace(<span class="hljs-regexp">/\./g</span>, <span class="hljs-string">' '</span>)
+      .replace(<span class="hljs-regexp">/[-()_!+]/g</span>, <span class="hljs-string">''</span>)
+    <span class="hljs-keyword">const</span> seasonEpisode = <span class="hljs-regexp">/S(\d{2})E(\d{2})/i</span>.exec(name)
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-3" id="section-3"></a>
+</div>
+<div class="dox">
+<div class="summary">
+<p>for seasons, the season/ep needs to be written to both the root meta,
+and to each file, in case there are many episode files in the release.
+when resolving placeholders, ep numbers on files take precedence over
+those in the root meta</p>
+</div>
+<div class="body">
+</div>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">    <span class="hljs-keyword">if</span> (seasonEpisode) {
+      name = name.slice(<span class="hljs-number">0</span>, seasonEpisode.index - <span class="hljs-number">1</span>)
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-4" id="section-4"></a>
+</div>
+<p>find a better way to do this, it seems sloppy. Detect whether a release
+has multiple episodes, if so, only write season to root meta.</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">      <span class="hljs-keyword">if</span> (meta.parsedName &amp;&amp; meta.parsedName.episode !== seasonEpisode[<span class="hljs-number">2</span>]) {
+        meta.parsedName.episode = <span class="hljs-string">'multi'</span>
+      } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!meta.parsedName) {
+        meta.parsedName = {
+          <span class="hljs-attr">mediaClass</span>: <span class="hljs-string">'tv'</span>,
+          name,
+          <span class="hljs-attr">season</span>: seasonEpisode[<span class="hljs-number">1</span>],
+          <span class="hljs-attr">episode</span>: seasonEpisode[<span class="hljs-number">2</span>]
+        }
+      }
+      file.parsedName = {
+        <span class="hljs-attr">episode</span>: seasonEpisode[<span class="hljs-number">2</span>]
+      }
+      <span class="hljs-keyword">return</span>
+    }
+    <span class="hljs-keyword">const</span> year = <span class="hljs-regexp">/(19|20)\d{2}/</span>.exec(name)
+    <span class="hljs-keyword">if</span> (year) {
+      name = name.slice(<span class="hljs-number">0</span>, year.index - <span class="hljs-number">1</span>)
+      <span class="hljs-keyword">if</span> (!meta.parsedName) {
+        meta.parsedName = {
+          <span class="hljs-attr">mediaClass</span>: <span class="hljs-string">'movie'</span>,
+          name,
+          <span class="hljs-attr">year</span>: year[<span class="hljs-number">0</span>]
+        }
+      }
+      <span class="hljs-keyword">return</span>
+    }
+  })
+}
+
+</pre>
+        </td>
+      </tr>
+    
+  </tbody>
+</table>
+
+  </div>
+</body>
+</html>

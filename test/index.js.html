@@ -52,13 +52,6 @@
 <span class="hljs-keyword">import</span> assert <span class="hljs-keyword">from</span> <span class="hljs-string">'assert'</span>
 <span class="hljs-keyword">import</span> debug <span class="hljs-keyword">from</span> <span class="hljs-string">'debug'</span>
 <span class="hljs-keyword">import</span> undisco <span class="hljs-keyword">from</span> <span class="hljs-string">'../lib'</span>
-<span class="hljs-keyword">import</span> sinon <span class="hljs-keyword">from</span> <span class="hljs-string">'sinon'</span>
-<span class="hljs-keyword">import</span> http <span class="hljs-keyword">from</span> <span class="hljs-string">'http'</span>
-<span class="hljs-keyword">import</span> hjson <span class="hljs-keyword">from</span> <span class="hljs-string">'hjson'</span>
-<span class="hljs-keyword">import</span> {
-  readFileSync
-} <span class="hljs-keyword">from</span> <span class="hljs-string">'fs'</span>
-
 </pre>
         </td>
       </tr>
@@ -67,6 +60,30 @@
         <td class="docs">
           <div class="pilwrap">
   <a class="pilcrow" href="#section-2" id="section-2"></a>
+</div>
+<p>import sinon from 'sinon'
+import http from 'http'</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript"><span class="hljs-keyword">import</span> hjson <span class="hljs-keyword">from</span> <span class="hljs-string">'hjson'</span>
+
+<span class="hljs-keyword">import</span> {
+  readFileSync,
+  statSync
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'fs'</span>
+<span class="hljs-keyword">import</span> {
+  emptyDirSync
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'fs-extra'</span>
+
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-3" id="section-3"></a>
 </div>
 <p>eslint-disable-next-line no-unused-vars</p>
 
@@ -81,7 +98,7 @@
       <tr>
         <td class="docs">
           <div class="pilwrap">
-  <a class="pilcrow" href="#section-3" id="section-3"></a>
+  <a class="pilcrow" href="#section-4" id="section-4"></a>
 </div>
 <div class="dox">
 <div class="summary">
@@ -103,10 +120,8 @@ nockBack.fixtures = <span class="hljs-string">'test/fixtures/nockBack'</span>
 <span class="hljs-keyword">const</span> config = <span class="hljs-built_in">Object</span>.assign(
   hjson.parse(readFileSync(<span class="hljs-string">'./config.hjson'</span>, <span class="hljs-string">'utf8'</span>)),
   {
-    <span class="hljs-attr">once</span>: <span class="hljs-literal">true</span>,
-    <span class="hljs-attr">dump</span>: {
-      <span class="hljs-attr">writeDump</span>: <span class="hljs-literal">false</span>
-    },
+    <span class="hljs-attr">command</span>: <span class="hljs-string">'once'</span>,
+    <span class="hljs-attr">done</span>: { <span class="hljs-attr">force</span>: <span class="hljs-literal">true</span> },
     <span class="hljs-attr">destPaths</span>: {
       <span class="hljs-attr">archives</span>: {
         <span class="hljs-attr">tv</span>: <span class="hljs-string">'/tmp/tv'</span>,
@@ -125,36 +140,20 @@ describe(<span class="hljs-string">'undisco'</span>, () =&gt; {
       <tr>
         <td class="docs">
           <div class="pilwrap">
-  <a class="pilcrow" href="#section-4" id="section-4"></a>
-</div>
-<p>create spy
-sinon.spy(cloudinary.api, 'resources')</p>
-
-        </td>
-        <td class="code highlight">
-          <pre class="javascript">    <span class="hljs-keyword">this</span>.requestSpy = sinon.spy(http, <span class="hljs-string">'request'</span>)
-  })
-  afterEach(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
-    <span class="hljs-keyword">this</span>.requestSpy.restore()
-</pre>
-        </td>
-      </tr>
-    
-      <tr>
-        <td class="docs">
-          <div class="pilwrap">
   <a class="pilcrow" href="#section-5" id="section-5"></a>
 </div>
-<p>cloudinary.api.resources.restore()</p>
+<p>create spy
+sinon.spy(cloudinary.api, 'resources')
+this.stubWrite = sinon.stub(LogSql.prototype, 'write')
+this.stubLastLog = sinon.stub(LogSql, 'lastLog').resolves()
+this.requestSpy = sinon.spy(http, 'request')</p>
 
         </td>
         <td class="code highlight">
-          <pre class="javascript">  })
-  it(<span class="hljs-string">'resolve movie from path'</span>, (done) =&gt; {
-    nockBack(<span class="hljs-string">'1'</span>, (writeRequests) =&gt; {
-      <span class="hljs-keyword">const</span> opt = <span class="hljs-built_in">Object</span>.assign({}, config, {<span class="hljs-attr">downloadsPath</span>: <span class="hljs-string">'test/fixtures/1'</span>})
-      undisco(opt)
-      .then(<span class="hljs-function">(<span class="hljs-params">dump</span>) =&gt;</span> {
+          <pre class="javascript">    emptyDirSync(config.destPaths.archives.tv)
+    emptyDirSync(config.destPaths.archives.movie)
+  })
+  afterEach(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
 </pre>
         </td>
       </tr>
@@ -164,30 +163,41 @@ sinon.spy(cloudinary.api, 'resources')</p>
           <div class="pilwrap">
   <a class="pilcrow" href="#section-6" id="section-6"></a>
 </div>
-<p>console.log(dump[0].files)</p>
+<p>this.stubWrite.restore()
+this.stubLastLog.restore()
+this.requestSpy.restore()
+cloudinary.api.resources.restore()</p>
 
         </td>
         <td class="code highlight">
-          <pre class="javascript">        assert(dump[<span class="hljs-number">0</span>].tmdb.title, <span class="hljs-string">'Hostiles'</span>)
+          <pre class="javascript">  })
+  it(<span class="hljs-string">'resolve movie from path'</span>, (done) =&gt; {
+    nockBack(<span class="hljs-string">'1'</span>, (writeRequests) =&gt; {
+      <span class="hljs-keyword">const</span> opt = <span class="hljs-built_in">Object</span>.assign({}, config, {<span class="hljs-attr">path</span>: <span class="hljs-string">'test/fixtures/1'</span>})
+      undisco(opt)
+      .then(<span class="hljs-function">(<span class="hljs-params">dump</span>) =&gt;</span> {
+        assert(dump[<span class="hljs-number">0</span>].tmdb.title, <span class="hljs-string">'Hostiles'</span>)
         writeRequests()
         done()
       })
     })
-  })
+  }).timeout(<span class="hljs-number">5000</span>)
+
   it(<span class="hljs-string">'resolve tv from path'</span>, (done) =&gt; {
     nockBack(<span class="hljs-string">'2'</span>, (writeRequests) =&gt; {
-      <span class="hljs-keyword">const</span> opt = <span class="hljs-built_in">Object</span>.assign({}, config, {<span class="hljs-attr">downloadsPath</span>: <span class="hljs-string">'test/fixtures/2'</span>})
+      <span class="hljs-keyword">const</span> opt = <span class="hljs-built_in">Object</span>.assign({}, config, {<span class="hljs-attr">path</span>: <span class="hljs-string">'test/fixtures/2'</span>})
       undisco(opt)
       .then(<span class="hljs-function">(<span class="hljs-params">dump</span>) =&gt;</span> {
         assert(dump[<span class="hljs-number">0</span>].placeholders.title, <span class="hljs-string">'Fringe'</span>)
+        assert.doesNotThrow(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> statSync(dump[<span class="hljs-number">0</span>].files[<span class="hljs-number">0</span>].destPath))
         writeRequests()
         done()
       })
     })
-  })
+  }).timeout(<span class="hljs-number">5000</span>)
   it(<span class="hljs-string">'resolve from nfo'</span>, (done) =&gt; {
     nockBack(<span class="hljs-string">'3'</span>, (writeRequests) =&gt; {
-      <span class="hljs-keyword">const</span> opt = <span class="hljs-built_in">Object</span>.assign({}, config, {<span class="hljs-attr">downloadsPath</span>: <span class="hljs-string">'test/fixtures/3'</span>})
+      <span class="hljs-keyword">const</span> opt = <span class="hljs-built_in">Object</span>.assign({}, config, {<span class="hljs-attr">path</span>: <span class="hljs-string">'test/fixtures/3'</span>})
       undisco(opt)
       .then(<span class="hljs-function">(<span class="hljs-params">dump</span>) =&gt;</span> {
 </pre>
@@ -204,11 +214,37 @@ sinon.spy(cloudinary.api, 'resources')</p>
         </td>
         <td class="code highlight">
           <pre class="javascript">        assert(dump[<span class="hljs-number">0</span>].placeholders.title, <span class="hljs-string">'Old Boy'</span>)
+        assert.doesNotThrow(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> statSync(dump[<span class="hljs-number">0</span>].files[<span class="hljs-number">0</span>].destPath))
         writeRequests()
         done()
       })
     })
-  })
+  }).timeout(<span class="hljs-number">5000</span>)
+  it(<span class="hljs-string">'extract rar'</span>, (done) =&gt; {
+    nockBack(<span class="hljs-string">'4'</span>, (writeRequests) =&gt; {
+      <span class="hljs-keyword">const</span> opt = <span class="hljs-built_in">Object</span>.assign({}, config, {<span class="hljs-attr">path</span>: <span class="hljs-string">'test/fixtures/4'</span>})
+      undisco(opt)
+      .then(<span class="hljs-function">(<span class="hljs-params">dump</span>) =&gt;</span> {
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-8" id="section-8"></a>
+</div>
+<p>console.log(dump[0].files)</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">        assert(dump[<span class="hljs-number">0</span>].placeholders.title, <span class="hljs-string">'Fringe'</span>)
+        assert.doesNotThrow(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> statSync(dump[<span class="hljs-number">0</span>].files[<span class="hljs-number">0</span>].destPath))
+        writeRequests()
+        done()
+      })
+    })
+  }).timeout(<span class="hljs-number">5000</span>)
 })
 
 </pre>

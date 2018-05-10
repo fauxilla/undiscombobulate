@@ -46,9 +46,60 @@
 
         </td>
         <td class="code highlight">
-          <pre class="javascript"><span class="hljs-keyword">import</span> debug <span class="hljs-keyword">from</span> <span class="hljs-string">'debug'</span>
-<span class="hljs-keyword">import</span> dump <span class="hljs-keyword">from</span> <span class="hljs-string">'./dump'</span>
-<span class="hljs-keyword">import</span> getModules <span class="hljs-keyword">from</span> <span class="hljs-string">'./modules'</span>
+          <pre class="javascript"><span class="hljs-keyword">import</span> getModules <span class="hljs-keyword">from</span> <span class="hljs-string">'./modules'</span>
+<span class="hljs-keyword">import</span> {
+  stat,
+  readFile,
+  writeFile,
+  createWriteStream
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'mz/fs'</span>
+<span class="hljs-keyword">import</span> prettyBytes <span class="hljs-keyword">from</span> <span class="hljs-string">'pretty-bytes'</span>
+<span class="hljs-keyword">import</span> {
+  parse,
+  join
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'path'</span>
+<span class="hljs-keyword">import</span> multimatch <span class="hljs-keyword">from</span> <span class="hljs-string">'multimatch'</span>
+<span class="hljs-keyword">import</span> progress <span class="hljs-keyword">from</span> <span class="hljs-string">'progress-stream'</span>
+<span class="hljs-keyword">import</span> ProgressBar <span class="hljs-keyword">from</span> <span class="hljs-string">'cli-progress-bar'</span>
+<span class="hljs-keyword">import</span> {
+  mkdirpSync
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'fs-extra'</span>
+<span class="hljs-keyword">import</span> {
+  log,
+  levels <span class="hljs-keyword">as</span> logLevels
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'./log'</span>
+
+<span class="hljs-keyword">const</span> defaults = {
+  <span class="hljs-attr">roles</span>: {
+    <span class="hljs-attr">sample</span>: [
+      <span class="hljs-string">'*sample*'</span>
+    ],
+    <span class="hljs-attr">archive</span>: [
+      <span class="hljs-string">'*.rar'</span>
+    ],
+    <span class="hljs-attr">feature</span>: [
+      <span class="hljs-string">'*.avi'</span>,
+      <span class="hljs-string">'*.mkv'</span>,
+      <span class="hljs-string">'*.wmv'</span>,
+      <span class="hljs-string">'*.mp4'</span>,
+      <span class="hljs-string">'!*sample*'</span>
+    ],
+    <span class="hljs-attr">subtitles</span>: [
+      <span class="hljs-string">'*.sub'</span>,
+      <span class="hljs-string">'*.srt'</span>,
+      <span class="hljs-string">'*.sbv'</span>,
+      <span class="hljs-string">'*.sfv'</span>
+    ],
+    <span class="hljs-attr">nfo</span>: [
+      <span class="hljs-string">'*.nfo'</span>
+    ],
+    <span class="hljs-attr">dump</span>: [
+      <span class="hljs-string">'undisco.dump'</span>
+    ]
+  },
+  <span class="hljs-attr">tempDir</span>: <span class="hljs-string">'/tmp'</span>,
+  <span class="hljs-attr">logLevel</span>: <span class="hljs-string">'debug'</span>
+}
 
 </pre>
         </td>
@@ -90,11 +141,11 @@
 
         </td>
         <td class="code highlight">
-          <pre class="javascript">    opt = <span class="hljs-built_in">Object</span>.assign(opt, ...extra)
+          <pre class="javascript">    opt = <span class="hljs-built_in">Object</span>.assign({}, defaults, opt, ...extra)
     <span class="hljs-keyword">this</span>.opt = opt
-    <span class="hljs-keyword">this</span>.meta = { srcRootDir }
+    <span class="hljs-keyword">this</span>.meta = { srcRootDir, <span class="hljs-attr">files</span>: [] }
+    <span class="hljs-keyword">this</span>.files = []
     <span class="hljs-keyword">this</span>.modules = getModules(opt)
-    <span class="hljs-keyword">this</span>.logs = []
 </pre>
         </td>
       </tr>
@@ -104,12 +155,17 @@
           <div class="pilwrap">
   <a class="pilcrow" href="#section-4" id="section-4"></a>
 </div>
-<p>preserve <code>this</code> for destructuring</p>
+<p>preserve <code>this</code> for destructuring
+I'm sure there's a way to declare these with fat arrow.</p>
 
         </td>
         <td class="code highlight">
-          <pre class="javascript">    <span class="hljs-keyword">this</span>.logger = <span class="hljs-keyword">this</span>.logger.bind(<span class="hljs-keyword">this</span>)
+          <pre class="javascript">    <span class="hljs-keyword">this</span>.addFiles = <span class="hljs-keyword">this</span>.addFiles.bind(<span class="hljs-keyword">this</span>)
+    <span class="hljs-keyword">this</span>.addFile = <span class="hljs-keyword">this</span>.addFile.bind(<span class="hljs-keyword">this</span>)
+    <span class="hljs-keyword">this</span>.getLog = <span class="hljs-keyword">this</span>.getLog.bind(<span class="hljs-keyword">this</span>)
   }
+  getLog (<span class="hljs-built_in">module</span>) {
+    <span class="hljs-keyword">const</span> child = log.child({ <span class="hljs-built_in">module</span> })
 </pre>
         </td>
       </tr>
@@ -119,42 +175,37 @@
           <div class="pilwrap">
   <a class="pilcrow" href="#section-5" id="section-5"></a>
 </div>
-<div class="dox">
-<div class="summary">
-<p>returns namespaced logger
-used by modules to store logs which will be dumped later, also writes
-to <code>debug</code></p>
-</div>
-<div class="body">
-</div>
-<div class="details">
-<div class="dox_tag_title">Params</div>
-<div class="dox_tag_detail">
-<span class="dox_tag_name">name</span>
-<span class="dox_type">String</span>
-<span>logger namespace (keep it short)
-</span>
-</div>
-<div class="dox_tag_title">Returns</div>
-<div class="dox_tag_detail">
-<span class="dox_tag_name"></span>
-<span class="dox_type">Function</span>
-<span>log fn
-</span>
-</div>
-</div>
-</div>
+<p>return plain object like:
+{ debug: (...args) =&gt; child.debug(...args), ... }</p>
 
         </td>
         <td class="code highlight">
-          <pre class="javascript">  logger (name) {
-    <span class="hljs-keyword">const</span> dbg = debug(<span class="hljs-string">`undisco:<span class="hljs-subst">${name}</span>`</span>)
-    <span class="hljs-keyword">return</span> <span class="hljs-function">(<span class="hljs-params">...args</span>) =&gt;</span> {
-      dbg(...args)
-      <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> args[<span class="hljs-number">0</span>] === <span class="hljs-string">'string'</span>) {
-        args[<span class="hljs-number">0</span>] = <span class="hljs-string">`<span class="hljs-subst">${name.padEnd(<span class="hljs-number">15</span>, <span class="hljs-string">' '</span>)}</span> | <span class="hljs-subst">${args[<span class="hljs-number">0</span>]}</span>`</span>
+          <pre class="javascript">    <span class="hljs-keyword">return</span> <span class="hljs-built_in">Object</span>.assign(
+      {},
+      ...Object.values(logLevels).map(<span class="hljs-function">(<span class="hljs-params">level</span>) =&gt;</span> ({
+        [level]: <span class="hljs-function">(<span class="hljs-params">...args</span>) =&gt;</span> child[level](...args)
+      }))
+    )
+  }
+  asJSON () {
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">Object</span>.assign(
+      {},
+      <span class="hljs-keyword">this</span>.meta,
+      {
+        <span class="hljs-attr">files</span>: <span class="hljs-keyword">this</span>.meta.files.map(<span class="hljs-function">(<span class="hljs-params">file</span>) =&gt;</span> ({
+          <span class="hljs-attr">size</span>: prettyBytes(file.size),
+          <span class="hljs-attr">path</span>: file.path,
+          <span class="hljs-attr">destPath</span>: file.destPath,
+          <span class="hljs-attr">role</span>: file.role
+        }))
       }
-      <span class="hljs-keyword">this</span>.logs = <span class="hljs-keyword">this</span>.logs.concat(args)
+    )
+  }
+
+  <span class="hljs-keyword">async</span> addFiles (files) {
+    files = [].concat(files)
+    <span class="hljs-keyword">while</span> (files.length) {
+      <span class="hljs-keyword">await</span> <span class="hljs-keyword">this</span>.addFile(files.pop())
     }
   }
 </pre>
@@ -165,6 +216,222 @@ to <code>debug</code></p>
         <td class="docs">
           <div class="pilwrap">
   <a class="pilcrow" href="#section-6" id="section-6"></a>
+</div>
+<div class="dox">
+<div class="summary">
+<p>adds file to files structure
+<code>file.path</code> is always required
+<code>file.contents</code> may be either:</p>
+<ul>
+<li>undefined - file is considered to be an actual file residing on hd</li>
+<li>Buffer - containing file content, file not on hd</li>
+<li>stream - will write the stream to hd</li>
+</ul>
+</div>
+<div class="body">
+</div>
+<div class="details">
+<div class="dox_tag_title">Params</div>
+<div class="dox_tag_detail">
+<span class="dox_tag_name">file</span>
+<span class="dox_type">Object</span>
+</div>
+<div class="dox_tag_title">Returns</div>
+<div class="dox_tag_detail">
+<span class="dox_tag_name"></span>
+<span class="dox_type">Promise</span>
+</div>
+</div>
+</div>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">  <span class="hljs-keyword">async</span> addFile (file) {
+    <span class="hljs-keyword">const</span> {
+      getLog,
+      <span class="hljs-attr">opt</span>: { roles, tempDir },
+      <span class="hljs-attr">meta</span>: { files, srcRootDir }
+    } = <span class="hljs-keyword">this</span>
+    <span class="hljs-keyword">const</span> {
+      error,
+      debug
+    } = getLog(<span class="hljs-string">'addFile'</span>)
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-7" id="section-7"></a>
+</div>
+<p>sanity checking</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">    <span class="hljs-keyword">if</span> (!file.path) {
+      error(<span class="hljs-string">'addFile: bad file'</span>, file)
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'file needs path'</span>)
+    }
+    <span class="hljs-keyword">if</span> (file.contents &amp;&amp; Buffer.isBuffer(file.contents)) {
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-8" id="section-8"></a>
+</div>
+<p>for buffers you just need to set size pretty much</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">      file.size = file.contents.length
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (file.contents &amp;&amp; <span class="hljs-keyword">typeof</span> file.contents.pipe === <span class="hljs-string">'function'</span>) {
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-9" id="section-9"></a>
+</div>
+<p>duck type readable stream</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">      <span class="hljs-keyword">if</span> (!file.size) {
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-10" id="section-10"></a>
+</div>
+<p>for streams you need size in order to report progress</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">        error(<span class="hljs-string">'addFile: bad file'</span>, file)
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'streamed file needs path &amp; size'</span>)
+      }
+      mkdirpSync(join(tempDir, srcRootDir))
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-11" id="section-11"></a>
+</div>
+<p>write stream to temp dir</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">      file.path = join(tempDir, srcRootDir, file.path)
+
+      <span class="hljs-keyword">const</span> output = createWriteStream(file.path)
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-12" id="section-12"></a>
+</div>
+<p>reporter monitors the stream and returns percentage</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">      <span class="hljs-keyword">const</span> reporter = progress({ <span class="hljs-attr">length</span>: file.size || <span class="hljs-number">0</span>, <span class="hljs-attr">time</span>: <span class="hljs-number">500</span> })
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-13" id="section-13"></a>
+</div>
+<p>configure a fancy progress bar</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">      <span class="hljs-keyword">const</span> bar = <span class="hljs-keyword">new</span> ProgressBar()
+      bar.show(file.path, <span class="hljs-number">0</span>)
+      reporter.on(<span class="hljs-string">'progress'</span>, ({ percentage }) =&gt; {
+        bar.show(file.path, percentage / <span class="hljs-number">100</span>)
+      })
+      file.contents
+      .pipe(reporter)
+      .pipe(output)
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-14" id="section-14"></a>
+</div>
+<p>simple delay</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">      <span class="hljs-keyword">await</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Promise</span>(<span class="hljs-function">(<span class="hljs-params">resolve</span>) =&gt;</span> file.contents.on(<span class="hljs-string">'close'</span>, resolve))
+      bar.hide()
+      debug(<span class="hljs-string">`wrote <span class="hljs-subst">${file.path}</span>`</span>)
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (file.contents) {
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'contents must be either buffer or readable stream'</span>)
+    }
+    <span class="hljs-keyword">if</span> (!file.base) <span class="hljs-built_in">Object</span>.assign(file, parse(file.path))
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-15" id="section-15"></a>
+</div>
+<p>fix this, won't work when a buffer is passed in as contents</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">    <span class="hljs-keyword">if</span> (!file.mtimeMs) <span class="hljs-built_in">Object</span>.assign(file, <span class="hljs-keyword">await</span> stat(file.path))
+    file.role = <span class="hljs-built_in">Object</span>.keys(roles).find(<span class="hljs-function">(<span class="hljs-params">role</span>) =&gt;</span> {
+      <span class="hljs-keyword">return</span> multimatch([file.base], roles[role]).length
+    }) || <span class="hljs-string">'junk'</span>
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-16" id="section-16"></a>
+</div>
+<p>log(file)</p>
+
+        </td>
+        <td class="code highlight">
+          <pre class="javascript">    files.push(file)
+  }
+
+</pre>
+        </td>
+      </tr>
+    
+      <tr>
+        <td class="docs">
+          <div class="pilwrap">
+  <a class="pilcrow" href="#section-17" id="section-17"></a>
 </div>
 <div class="dox">
 <div class="summary">
@@ -186,12 +453,16 @@ to <code>debug</code></p>
         </td>
         <td class="code highlight">
           <pre class="javascript">  <span class="hljs-keyword">async</span> run () {
-    <span class="hljs-keyword">const</span> log = <span class="hljs-keyword">this</span>.logger(<span class="hljs-string">'run'</span>)
-    log(<span class="hljs-string">`processing <span class="hljs-subst">${<span class="hljs-keyword">this</span>.meta.srcRootDir}</span>`</span>)
+    <span class="hljs-keyword">const</span> { warn, debug } = <span class="hljs-keyword">this</span>.getLog(<span class="hljs-string">'run'</span>)
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">this</span>.store = <span class="hljs-built_in">JSON</span>.parse(<span class="hljs-keyword">await</span> readFile(<span class="hljs-string">'store.json'</span>))
+    } <span class="hljs-keyword">catch</span> (e) {
+      <span class="hljs-keyword">this</span>.store = {}
+    }
     <span class="hljs-keyword">try</span> {
       <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-keyword">this</span>.modules.length; i++) {
         <span class="hljs-keyword">try</span> {
-          log(<span class="hljs-keyword">this</span>.modules[i].name)
+          debug(<span class="hljs-keyword">this</span>.modules[i].name)
           <span class="hljs-keyword">await</span> <span class="hljs-keyword">this</span>.modules[i](<span class="hljs-keyword">this</span>)
 </pre>
         </td>
@@ -200,7 +471,7 @@ to <code>debug</code></p>
       <tr>
         <td class="docs">
           <div class="pilwrap">
-  <a class="pilcrow" href="#section-7" id="section-7"></a>
+  <a class="pilcrow" href="#section-18" id="section-18"></a>
 </div>
 <p>catch &amp; throw avoids uncaught promise rejection, kills for loop</p>
 
@@ -208,14 +479,17 @@ to <code>debug</code></p>
         <td class="code highlight">
           <pre class="javascript">        } <span class="hljs-keyword">catch</span> (e) { <span class="hljs-keyword">throw</span> e }
       }
-      <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> dump(<span class="hljs-keyword">this</span>)
+      <span class="hljs-keyword">this</span>.store[<span class="hljs-keyword">this</span>.meta.srcRootDir] = <span class="hljs-string">'complete'</span>
     } <span class="hljs-keyword">catch</span> (err) {
       <span class="hljs-keyword">if</span> (err.message !== <span class="hljs-string">'skip'</span>) {
-        log(<span class="hljs-string">`unable to continue <span class="hljs-subst">${err.message}</span>`</span>)
-        <span class="hljs-keyword">this</span>.meta.errorStack = err.stack
+        <span class="hljs-keyword">this</span>.store[<span class="hljs-keyword">this</span>.meta.srcRootDir] = <span class="hljs-string">'error'</span>
+        warn(<span class="hljs-string">`unable to continue <span class="hljs-subst">${err.message}</span>`</span>)
       }
-      <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> dump(<span class="hljs-keyword">this</span>)
     }
+    debug({ <span class="hljs-attr">meta</span>: <span class="hljs-keyword">this</span>.asJSON() }, <span class="hljs-string">'dump'</span>)
+    <span class="hljs-keyword">await</span> writeFile(<span class="hljs-string">'store.json'</span>, <span class="hljs-built_in">JSON</span>.stringify(<span class="hljs-keyword">this</span>.store, <span class="hljs-literal">null</span>, <span class="hljs-number">2</span>))
+    debug(<span class="hljs-string">`completed <span class="hljs-subst">${<span class="hljs-keyword">this</span>.meta.srcRootDir}</span>`</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.asJSON()
   }
 }
 
