@@ -33,7 +33,7 @@ const config = Object.assign(
   hjson.parse(readFileSync('./config.hjson', 'utf8')),
   {
     command: 'once',
-    done: { force: true },
+    force: true,
     destPaths: {
       archives: {
         tv: '/tmp/tv',
@@ -101,7 +101,7 @@ describe('undisco', () => {
       const opt = Object.assign({}, config, {path: 'test/fixtures/4'})
       undisco(opt)
       .then((dump) => {
-        // console.log(dump[0].files)
+        console.log(dump[0].files)
         assert(dump[0].placeholders.title, 'Fringe')
         assert.doesNotThrow(() => statSync(dump[0].files[0].destPath))
         writeRequests()
